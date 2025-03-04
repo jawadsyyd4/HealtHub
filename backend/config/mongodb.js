@@ -6,7 +6,7 @@ const connectDB = async () => {
 
   mongoose.connection.on("connected", () => console.log("Database connected"));
   await mongoose.connect(
-    `${process.env.MONGODB_URL || "mongodb://127.0.0.1:27017"}/HealthHub`
+    `${process.env.MONGODB_URL || "mongodb://127.0.0.1:27017"}/HealthHub-gitHub`
   );
 };
 
