@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
 import ratingModel from "../models/ratingModel.js";
+import DoctorSchedule from "../models/DoctorScheduleModel.js";
 
 const changeAvailablity = async (req, res) => {
   try {
@@ -266,6 +267,91 @@ const getDoctorAverageRating = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
+// Create Doctor Schedule
+const createDoctorSchedule = async (req, res) => {
+  try {
+    const { doctorId, availableDays, availableTimes } = req.body;
+
+    // Find the doctor
+    const doctor = await doctorModel.findById(doctorId);
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    // Create a new schedule
+    const newSchedule = new DoctorSchedule({
+      doctor: doctorId,
+      availableDays: availableDays,
+      availableTimes: availableTimes,
+    });
+
+    // Save the schedule
+    await newSchedule.save();
+    res.json({
+      success: true,
+      message: "Doctor schedule created successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+const getDoctorSchedule = async (req, res) => {
+  try {
+    // Extract doctorId from the request body
+    const { doctorId } = req.body;
+    if (!doctorId) {
+      return res.json({ success: false, message: "Doctor ID is required" });
+    }
+
+    // Find the doctor's schedule by doctorId
+    const schedule = await DoctorSchedule.findOne({ doctor: doctorId });
+
+    if (!schedule) {
+      return res.json({
+        success: false,
+        message: "Doctor schedule not found.",
+      });
+    }
+
+    // Return the schedule data
+    res.json({ success: true, schedule });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+const updateDoctorSchedule = async (req, res) => {
+  try {
+    const { doctorId, availableDays, availableTimes } = req.body;
+
+    // Find the doctor's existing schedule
+    const existingSchedule = await DoctorSchedule.findOne({ doctor: doctorId });
+
+    if (!existingSchedule) {
+      return res.status(404).json({ message: "Doctor schedule not found" });
+    }
+
+    // Update the schedule fields
+    existingSchedule.availableDays = availableDays;
+    existingSchedule.availableTimes = availableTimes;
+
+    // Save the updated schedule
+    await existingSchedule.save();
+
+    res.json({
+      success: true,
+      message: "Doctor schedule updated successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
 export {
   changeAvailablity,
   doctorsList,
@@ -278,4 +364,7 @@ export {
   updateDoctorProfile,
   getDoctorRatings,
   getDoctorAverageRating,
+  getDoctorSchedule,
+  createDoctorSchedule,
+  updateDoctorSchedule,
 };

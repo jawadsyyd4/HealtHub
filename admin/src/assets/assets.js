@@ -16,7 +16,7 @@ import patients_icon from "./patients_icon.svg";
 import upload_icon from "./upload_icon.png";
 import save_icon from "./save_icon.svg";
 import speciality_icon from "./speciality_icon.svg";
-
+import dailyScheduleIcon from "./dailyScheduleIcon.svg";
 export const assets = {
   add_icon,
   admin_logo,
@@ -36,4 +36,5 @@ export const assets = {
   delete_icon,
   save_icon,
   upload_icon,
+  dailyScheduleIcon,
 };

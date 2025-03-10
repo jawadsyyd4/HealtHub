@@ -15,6 +15,7 @@ import DoctorDashboard from './pages/Doctor/DoctorDashboard.jsx';
 import DoctorAppointments from './pages/Doctor/DoctorAppointments.jsx';
 import DoctorProfile from './pages/Doctor/DoctorProfile.jsx';
 import AddSpeciality from './pages/Admin/AddSpeciality.jsx';
+import DoctorScheduleForm from './pages/Doctor/DoctorScheduleForm.jsx';
 
 
 const App = () => {
@@ -43,6 +44,7 @@ const App = () => {
           <Route path='/doctor-dashboard' element={<DoctorDashboard />} />
           <Route path='/doctor-appointments' element={<DoctorAppointments />} />
           <Route path='/doctor-profile' element={<DoctorProfile />} />
+          <Route path='/doctor-schedule' element={<DoctorScheduleForm />} />
 
         </Routes >
       </div >

@@ -10,6 +10,9 @@ import {
   doctorProfile,
   getDoctorRatings,
   getDoctorAverageRating,
+  getDoctorSchedule,
+  createDoctorSchedule,
+  updateDoctorSchedule,
 } from "../controllers/doctorController.js";
 import authDoctor from "../middlewares/authDoctor.js";
 
@@ -28,5 +31,9 @@ doctorRouter.post("/update-profile", authDoctor, updateDoctorProfile);
 
 doctorRouter.get("/info/:doctorId", getDoctorRatings);
 doctorRouter.get("/rating/:doctorId", getDoctorAverageRating);
+
+doctorRouter.get("/schedule", authDoctor, getDoctorSchedule);
+doctorRouter.post("/schedule", authDoctor, createDoctorSchedule);
+doctorRouter.post("/update-schedule", authDoctor, updateDoctorSchedule);
 
 export default doctorRouter;
