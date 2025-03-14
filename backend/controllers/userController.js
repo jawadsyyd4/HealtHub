@@ -10,6 +10,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 // import twilio from "twilio";
 import ratingModel from "../models/ratingModel.js";
+import DoctorSchedule from "../models/DoctorScheduleModel.js";
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -210,27 +211,6 @@ const bookAppointment = async (req, res) => {
       date: Date.now(),
     };
 
-    /*
-
-    const accountSid = process.env.ACCOUNT_SID;
-    const authToken = process.env.AUTH_TOKEN;
-
-    const client = twilio(accountSid, authToken);
-
-    const message = await client.messages.create({
-      from: "whatsapp:+14155238886", // Twilio sandbox WhatsApp number
-      to: `whatsapp:+961${userData.phone}`, // Patient's phone number in international format
-      contentSid: "HXb5b62575e6e4ff6129ad7c8efe1f983e", // Content SID (this is typically used for templates)
-      contentVariables: JSON.stringify({
-        1: slotDate.split("_").join("/"), // Appointment date
-        2: slotTime, // Appointment time
-      }),
-    });
-
-    console.log(`Message sent with SID: ${message.sid}`);
-
-    */
-
     // Send verification email.
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -384,11 +364,11 @@ const paymentStripepay = async (req, res) => {
                 appointmentData.doctorData.speciality +
                 ")",
               description:
-                appointmentData.slotDate.split("_")[0] +
+                appointmentData.slotDate.split("-")[0] +
                 "-" +
-                appointmentData.slotDate.split("_")[1] +
+                appointmentData.slotDate.split("-")[1] +
                 "-" +
-                appointmentData.slotDate.split("_")[2] +
+                appointmentData.slotDate.split("-")[2] +
                 ", " +
                 appointmentData.slotTime,
               images: [appointmentData.doctorData.image],
@@ -495,6 +475,31 @@ const checkUserRating = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
+const getDocSlots = async (req, res) => {
+  try {
+    const docId = req.params.doctorId;
+
+    const doctor = await doctorModel.findById(docId);
+
+    if (!doctor) {
+      return res.json({ success: false, message: "Doctor not found" });
+    }
+
+    const doctorSchedule = await DoctorSchedule.findOne({ doctor: docId });
+    if (!doctorSchedule) {
+      return res.json({
+        success: false,
+      });
+    }
+    const availableTimes = doctorSchedule.availableTimes;
+    res.json({ success: true, availableTimes });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
 export {
   registerUser,
   loginUser,
@@ -508,4 +513,5 @@ export {
   verifyEmail,
   rateDoctor,
   checkUserRating,
+  getDocSlots,
 };

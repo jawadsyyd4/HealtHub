@@ -12,6 +12,7 @@ import {
   verifyEmail,
   rateDoctor,
   checkUserRating,
+  getDocSlots,
 } from "../controllers/userController.js";
 import authUser from "../middlewares/authUser.js";
 import upload from "../middlewares/multer.js";
@@ -41,5 +42,6 @@ userRoute.get("/payment/cancel", (req, res) => {
 
 userRoute.post("/rate-doctor", authUser, rateDoctor);
 userRoute.get("/user-rate/:doctorId", authUser, checkUserRating);
+userRoute.get("/availble-day/:doctorId", getDocSlots);
 
 export default userRoute;
