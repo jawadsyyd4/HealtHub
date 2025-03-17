@@ -12,6 +12,6 @@
 }
 @media (max-width: 740px) {
   .active p {
-    @apply text-white bg-[#5f6FFF];
+    @apply text-white bg-[#C0EB6A];
   }
 }

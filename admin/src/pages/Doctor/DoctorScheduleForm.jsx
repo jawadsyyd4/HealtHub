@@ -150,7 +150,7 @@ const DoctorScheduleForm = () => {
 
                 <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    className="px-4 py-2 border-[#C0EB6A] border-1 text-[#C0EB6A] rounded hover:bg-[#C0EB6A] hover:text-white transition-all duration-300 cursor-pointer"
                 >
                     {doctorAvailability ? 'Update Schedule' : 'Create Schedule'}
                 </button>

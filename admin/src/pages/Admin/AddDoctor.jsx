@@ -132,7 +132,7 @@ const AddDoctor = () => {
                                     ))
                                 }
                             </select>
-                            <span onClick={() => navigate('/add-speciality')} className='absolute end-0 text-[#5F6FFF] cursor-pointer underline' value="addNewSpeciality">Add new speciality</span>
+                            <span onClick={() => navigate('/add-speciality')} className='absolute end-0 text-[#C0EB6A] cursor-pointer underline' value="addNewSpeciality">Add new speciality</span>
                         </div>
                         <div className="flex-1 flex flex-col gap-1">
                             <p>Education</p>
@@ -150,7 +150,7 @@ const AddDoctor = () => {
                     <p className='mt-4 mb-2'>About Doctor</p>
                     <textarea onChange={(e) => setAbout(e.target.value)} value={about} className='w-full px-4 pt-2 border rounded' placeholder='Write about doctor' rows={5} required />
                 </div>
-                <button type='submit' className='bg-[#5F6FFF] px-10 py-3 mt-4 text-white rounded-full cursor-pointer'>Add doctor</button>
+                <button type='submit' className='bg-[#C0EB6A] px-10 py-3 mt-4 text-white rounded-full cursor-pointer'>Add doctor</button>
             </div>
         </form>
     )

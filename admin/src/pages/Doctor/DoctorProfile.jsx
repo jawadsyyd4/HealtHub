@@ -53,7 +53,7 @@ const DoctorProfile = () => {
             <div className="flex flex-col gap-4 m-5">
 
                 <div className="">
-                    <img className='bg-[#5f6fff]/80 w-full sm:max-w-64 rounded-lg' src={profileData.image || 'default-image.jpg'} alt="" />
+                    <img className='bg-[#C0EB6A]/80 w-full sm:max-w-64 rounded-lg' src={profileData.image || 'default-image.jpg'} alt="" />
                 </div>
 
                 <div className="flex-1 border border-stone-100 rounded-lg p-8 py-7 bg-white">
@@ -117,10 +117,10 @@ const DoctorProfile = () => {
                     </div>
                     {
                         isEdit
-                            ? <button onClick={updateProfile} className='px-4 py-1 border border-[#5f6fff] text-sm rounded-full mt-5 cursor-pointer hover:bg-[#5f6fff] hover:text-white transition-all'>
+                            ? <button onClick={updateProfile} className='px-4 py-1 border border-[#C0EB6A] text-sm rounded-full mt-5 cursor-pointer hover:bg-[#C0EB6A] hover:text-white transition-all'>
                                 Save
                             </button>
-                            : <button onClick={() => setIsEdit(true)} className='px-4 py-1 border border-[#5f6fff] text-sm rounded-full mt-5 cursor-pointer hover:bg-[#5f6fff] hover:text-white transition-all'>
+                            : <button onClick={() => setIsEdit(true)} className='px-4 py-1 border border-[#C0EB6A] text-sm rounded-full mt-5 cursor-pointer hover:bg-[#C0EB6A] hover:text-white transition-all'>
                                 Edit
                             </button>
                     }

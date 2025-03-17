@@ -24,15 +24,15 @@ const About = () => {
             </div>
 
             <div className="flex flex-col md:flex-row mb-20">
-                <div className='border px-10 md:px-16 py-8 sm:py-16 flex flex-col gap-5 text-[15px] hover:bg-[#5f6FFF] hover:text-white transition-all duration-300 text-gray-600 cursor-pointer'>
+                <div className='border px-10 md:px-16 py-8 sm:py-16 flex flex-col gap-5 text-[15px] hover:bg-[#C0EB6A] hover:text-white transition-all duration-300 text-gray-600 cursor-pointer'>
                     <b>Efficiency:</b>
                     <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Amet.</p>
                 </div>
-                <div className='border px-10 md:px-16 py-8 sm:py-16 flex flex-col gap-5 text-[15px] hover:bg-[#5f6FFF] hover:text-white transition-all duration-300 text-gray-600 cursor-pointer'>
+                <div className='border px-10 md:px-16 py-8 sm:py-16 flex flex-col gap-5 text-[15px] hover:bg-[#C0EB6A] hover:text-white transition-all duration-300 text-gray-600 cursor-pointer'>
                     <b>Convenience:</b>
                     <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Amet.</p>
                 </div>
-                <div className='border px-10 md:px-16 py-8 sm:py-16 flex flex-col gap-5 text-[15px] hover:bg-[#5f6FFF] hover:text-white transition-all duration-300 text-gray-600 cursor-pointer'>
+                <div className='border px-10 md:px-16 py-8 sm:py-16 flex flex-col gap-5 text-[15px] hover:bg-[#C0EB6A] hover:text-white transition-all duration-300 text-gray-600 cursor-pointer'>
                     <b>Personalization:</b>
                     <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Amet.</p>
                 </div>

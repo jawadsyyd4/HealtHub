@@ -38,7 +38,7 @@ const DoctorAppointments = () => {
                                 <p>{item.userData.name}</p>
                             </div>
                             <div className="">
-                                <p className='text-xs inline border border-[#5f6FFF] px-2 rounded-full'>{item.payment ? 'ONLINE' : 'CASH'}</p>
+                                <p className='text-xs inline border border-[#C0EB6A] px-2 rounded-full'>{item.payment ? 'ONLINE' : 'CASH'}</p>
                             </div>
                             <p className='max-sm:hidden'>{calculateAge(item.userData.dob)}</p>
                             <p>{slotDateFormat(item.slotDate)}, {item.slotTime}</p>

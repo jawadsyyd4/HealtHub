@@ -6,7 +6,6 @@ import { assets } from '../assets/assets';
 import RelatedDoctors from '../components/RelatedDoctors';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { Rating } from 'primereact/rating';
 
 const Appoitment = () => {
 
@@ -22,52 +21,10 @@ const Appoitment = () => {
 
     const [docInfo, setDocInfo] = useState(null)
 
-    const [value, setValue] = useState(null);
-
-    const [isEdit, setIsEdit] = useState(false)
-
     const fetchDocInfo = async () => {
         const docInfo = await doctors.find(doc => doc._id === docId)
         setDocInfo(docInfo)
     }
-
-    const checkUserRate = async () => {
-        try {
-            const { data } = await axios.get(backendUrl + `/api/user/user-rate/${docId}`, { headers: { token } });
-            if (data.success) {
-                setValue(data.existingRating.rating); // Set the existing rating value
-            } else {
-                setValue(null)
-            }
-        } catch (error) {
-            console.log(error);
-            toast.error(error.message);
-        }
-    };
-
-    const handleRatingSubmit = async () => {
-        try {
-            setIsEdit(false)
-            // Make sure value is the most recent
-            const { data } = await axios.post(
-                backendUrl + '/api/user/rate-doctor', // Adjust API endpoint
-                {
-                    doctorId: docId,
-                    rating: value, // Use the updated state value here
-                },
-                { headers: { token } }
-            );
-
-            if (data.success) {
-                toast.success(data.message);
-            } else {
-                toast.error(data.message);
-            }
-        } catch (error) {
-            console.log(error);
-            toast.error(error.message);
-        }
-    };
 
     const getDocSlots = async () => {
         try {
@@ -175,7 +132,6 @@ const Appoitment = () => {
 
     useEffect(() => {
         fetchDocInfo();
-        checkUserRate();
         getDocSlots();
     }, [doctors, docId]);
 
@@ -184,7 +140,7 @@ const Appoitment = () => {
             {/* DOCTOR DETAILS */}
             <div className="flex flex-col sm:flex-row gap-4">
                 <div className="">
-                    <img className='bg-[#5f6FFF] w-full sm:max-w-72 rounded-lg' src={docInfo.image} alt="" />
+                    <img className='bg-[#C0EB6A] w-full sm:max-w-72 rounded-lg' src={docInfo.image} alt="" />
                 </div>
                 {/* Section rate */}
                 <div className="flex-1 border border-gray-400 rounded-lg p-8 py-7 bg-white mx-2 sm:mx-0 mt-[-80px] sm:mt-0">
@@ -213,55 +169,6 @@ const Appoitment = () => {
                         </span>
                     </p>
 
-                    {
-                        token &&
-                        <div className="mt-4 font-medium text-center">
-                            <p className="text-sm mb-1 text-gray-500">Rate Doctors to help us improve the website</p>
-
-                            {/* Rating Section */}
-                            <div className="w-full flex flex-col items-center">
-                                {/* Increase the size of stars */}
-                                <Rating
-                                    value={value}
-                                    onChange={(e) => { setValue(e.value); setIsEdit(true); }} // This updates the state value with the selected rating
-                                    cancel={false}
-                                    className="text-amber-400"
-                                    stars={5}
-                                    style={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        gap: '0.25rem',
-                                        fontSize: '2rem', // Increase the size of stars
-                                    }}
-                                />
-
-                                {/* Conditionally render the buttons */}
-                                {isEdit && (
-                                    <div className="w-full flex items-center justify-center gap-2 mt-2">
-                                        {/* Submit Button */}
-                                        <button
-                                            onClick={async () => {
-                                                await handleRatingSubmit(value); // Pass the current value directly to handleRatingSubmit
-                                            }}
-                                            className="bg-[#5f6FFF] text-white text-sm font-light px-7 py-1.5 rounded-full cursor-pointer hover:scale-105 transition-all duration-300 ease-in-out"
-                                        >
-                                            Submit Rating
-                                        </button>
-
-                                        {/* Cancel Button */}
-                                        <button
-                                            onClick={() => { setIsEdit(false); checkUserRate(); }}
-                                            className="bg-yellow-500 text-white text-sm font-light px-7 py-1.5 rounded-full cursor-pointer hover:scale-105 transition-all duration-300 ease-in-out"
-                                        >
-                                            Cancel Rating
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    }
-
                 </div>
 
                 {/*  */}
@@ -281,7 +188,7 @@ const Appoitment = () => {
                                         const day = new Date(date).getDay();
                                         const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
                                         return (
-                                            <div onClick={() => { setSlotIndex(index); setBookingDate(date) }} className={`border text-center py-6 min-w-16 rounded-full cursor-pointer ${slotIndex === index ? "bg-[#5f6fff] text-white" : "border-gray-200 "}`} key={index}>
+                                            <div onClick={() => { setSlotIndex(index); setBookingDate(date) }} className={`border text-center py-6 min-w-16 rounded-full cursor-pointer ${slotIndex === index ? "bg-[#C0EB6A] text-white" : "border-gray-200 "}`} key={index}>
                                                 <h3>{daysOfWeek[day]}</h3>
                                                 <p>{date.split('-')[2]}</p>
                                             </div>
@@ -290,7 +197,7 @@ const Appoitment = () => {
                                 </div>
                                 <div className="flex items-center gap-3 w-full overflow-x-scroll mt-4">
                                     {docSlots && Object.entries(docSlots)[slotIndex] && Object.entries(docSlots)[slotIndex][1].map((time, index) => (
-                                        <div key={index} onClick={() => { setSlotIndex2(index); setBookingTime(time.start) }} className={`text-sm font-light flex-shrink-0 px-5 py-2 rounded-full cursor-pointer ${slotIndex2 === index ? 'bg-[#5f6fff] text-white' : 'text-gray-400 border border-gray-300'}`}>
+                                        <div key={index} onClick={() => { setSlotIndex2(index); setBookingTime(time.start) }} className={`text-sm font-light flex-shrink-0 px-5 py-2 rounded-full cursor-pointer ${slotIndex2 === index ? 'bg-[#C0EB6A] text-white' : 'text-gray-400 border border-gray-300'}`}>
                                             <ul>
                                                 <li>
                                                     {time.start} - {time.end}
@@ -299,7 +206,7 @@ const Appoitment = () => {
                                         </div>
                                     ))}
                                 </div>
-                                <button onClick={() => bookAppointment(bookingDate, bookingTime)} className='bg-[#5f6fff] text-white text-sm font-light px-14 py-3 rounded-full my-6 cursor-pointer hover:scale-105'>Book an appointment</button>
+                                <button onClick={() => bookAppointment(bookingDate, bookingTime)} className='bg-[#C0EB6A] text-white text-sm font-light px-14 py-3 rounded-full my-6 cursor-pointer hover:scale-105'>Book an appointment</button>
                             </div>
                         ) : (
                             <p>Loading available times...</p>

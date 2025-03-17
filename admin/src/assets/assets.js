@@ -17,6 +17,7 @@ import upload_icon from "./upload_icon.png";
 import save_icon from "./save_icon.svg";
 import speciality_icon from "./speciality_icon.svg";
 import dailyScheduleIcon from "./dailyScheduleIcon.svg";
+import svgLogo from "./file.svg";
 export const assets = {
   add_icon,
   admin_logo,
@@ -37,4 +38,5 @@ export const assets = {
   save_icon,
   upload_icon,
   dailyScheduleIcon,
+  svgLogo,
 };

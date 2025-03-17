@@ -27,7 +27,7 @@ const Doctors = () => {
         <div>
             <p className='text-gray-600'>Browse through the doctors specialist.</p>
             <div className="flex flex-col sm:flex-row items-start gap-5 mt-5">
-                <button onClick={() => setShowFilter(prev => !prev)} className={`py-1 px-3 border rounded text-sm transition-all sm:hidden ${showFilter ? 'text-white bg-[#5f6FFF]' : ''}`}>Filter</button>
+                <button onClick={() => setShowFilter(prev => !prev)} className={`py-1 px-3 border rounded text-sm transition-all sm:hidden ${showFilter ? 'text-white bg-[#C0EB6A]' : ''}`}>Filter</button>
                 <div className={`flex-col gap-4 text-sm text-gray-600 ${showFilter ? 'flex' : 'hidden sm:flex'}`}>
                     {
                         specialities.map((item, index) => (

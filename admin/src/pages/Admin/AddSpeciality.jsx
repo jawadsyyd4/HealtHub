@@ -119,7 +119,7 @@ const AddSpeciality = () => {
                 <button
                     type="button"
                     onClick={() => setOpen(true)} // Open dialog on click
-                    className="bg-[#5F6FFF] px-8 py-3 text-white rounded-lg text-lg font-semibold hover:bg-[#4e5bdb] transition-all cursor-pointer shadow-md">
+                    className="border-[#C0EB6A] border-2 text-[#C0EB6A] px-8 py-3  rounded-lg text-lg font-semibold hover:bg-[#C0EB6A] hover:text-white transition-all cursor-pointer shadow-md">
                     Add Speciality
                 </button>
 
@@ -197,7 +197,7 @@ const AddSpeciality = () => {
                                     <button
                                         type="submit"
                                         onClick={() => { onSubmitHandler() }}
-                                        className="cursor-pointer inline-flex w-full justify-center rounded-md bg-[#5F6FFF] px-6 py-2 text-white font-semibold text-lg shadow-md hover:bg-[#4e5bdb] sm:ml-3 sm:w-auto transition-all">
+                                        className="cursor-pointer inline-flex w-full justify-center rounded-md bg-[#C0EB6A] px-6 py-2 text-white font-semibold text-lg shadow-md hover:bg-[#4e5bdb] sm:ml-3 sm:w-auto transition-all">
                                         Add Speciality
                                     </button>
                                 </div>
