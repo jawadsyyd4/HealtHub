@@ -115,6 +115,11 @@ const loginUser = async (req, res) => {
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
         res.json({ success: true, token });
+      } else {
+        res.json({
+          success: false,
+          message: "Verify your account using email",
+        });
       }
     } else {
       res.json({ success: false, message: "Invalid credentials" });

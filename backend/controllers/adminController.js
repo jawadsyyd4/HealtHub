@@ -209,6 +209,86 @@ const adminDashboard = async (req, res) => {
   }
 };
 
+const getDoctorById = async (req, res) => {
+  try {
+    const { docId } = req.params;
+    if (!docId) {
+      return res.json({ success: false, message: "Doctor Id is required" });
+    }
+    const doctor = await doctorModel.findById(docId).select("-password");
+    if (!doctor) {
+      return res.json({ success: false, message: "Doctor not found" });
+    }
+    res.json({ success: true, doctor });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const updateDoctorInfo = async (req, res) => {
+  try {
+    const { docId } = req.params; // Get docId from route params
+    const { name, speciality, degree, experience, about, address, fees } =
+      req.body;
+    const imageFile = req.file; // Image file, if uploaded
+
+    // Check for missing fields
+    if (
+      !name ||
+      !speciality ||
+      !degree ||
+      !experience ||
+      !about ||
+      !address ||
+      !fees
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing Details" });
+    }
+
+    // Find the existing doctor by ID
+    const doctor = await doctorModel.findById(docId);
+    if (!doctor) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Doctor not found" });
+    }
+
+    // If an image is uploaded, upload it to Cloudinary
+    let imageUrl = doctor.image; // Retain old image URL if no new image is provided
+    if (imageFile) {
+      const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+        resource_type: "image",
+      });
+      imageUrl = imageUpload.secure_url; // Get the new image URL
+    }
+
+    // Update the doctor's details
+    doctor.name = name || doctor.name;
+    doctor.speciality = speciality || doctor.speciality;
+    doctor.degree = degree || doctor.degree;
+    doctor.experience = experience || doctor.experience;
+    doctor.about = about || doctor.about;
+    doctor.fees = fees || doctor.fees;
+    doctor.address = JSON.parse(address) || doctor.address;
+    doctor.image = imageUrl;
+
+    // Save the updated doctor record
+    await doctor.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Doctor updated successfully", doctor });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
 export {
   addDoctor,
   loginAdmin,
@@ -216,4 +296,6 @@ export {
   appointmentAdmin,
   appointmentCancel,
   adminDashboard,
+  getDoctorById,
+  updateDoctorInfo,
 };

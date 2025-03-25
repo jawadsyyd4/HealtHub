@@ -2,12 +2,15 @@
 import { createContext, useState } from "react";
 import axios from "axios"
 import { toast } from 'react-toastify';
+import { useNavigate } from "react-router-dom";
 
 export const AdminContext = createContext()
 
 const AdminContextProvider = (props) => {
 
     const [aToken, setAToken] = useState(localStorage.getItem('aToken') ? localStorage.getItem('aToken') : '')
+
+    const navigate = useNavigate('')
 
     const [doctors, setDoctors] = useState([])
 
@@ -19,6 +22,7 @@ const AdminContextProvider = (props) => {
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL
 
+    const [docInfo, setDocInfo] = useState(false)
 
     const getAllDoctors = async () => {
         try {
@@ -83,7 +87,6 @@ const AdminContextProvider = (props) => {
             const { data } = await axios.get(backendUrl + "/api/admin/dashboard", { headers: { aToken } })
             if (data.success) {
                 setDashData(data.dashData)
-                console.log(data.dashData);
             } else {
                 toast.error(data.message)
             }
@@ -121,12 +124,24 @@ const AdminContextProvider = (props) => {
         }
     }
 
+    const getDoctorData = async (docId) => {
+        try {
+            const { data } = await axios.get(backendUrl + `/api/admin/doctor-info/${docId}`, { headers: { aToken } })
+            if (data.success) {
+                setDocInfo(data.doctor)
+                navigate('/add-doctor')
+            }
+        } catch (error) {
+            toast.error(error.message)
+            console.log(error);
+        }
+    }
 
     const value = {
         aToken, setAToken,
         backendUrl, getAllDoctors, doctors, changeAvailability, getAllAppointments,
         appointments, setAppointments, cancelAppointment, getDashData, dashData,
-        specialities, setSpecialities, getAllSpecialities, deleteHandler,
+        specialities, setSpecialities, getAllSpecialities, deleteHandler, getDoctorData, docInfo, setDocInfo
     }
 
     return <AdminContext.Provider value={value}>

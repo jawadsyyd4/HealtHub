@@ -7,6 +7,8 @@ import {
   appointmentAdmin,
   appointmentCancel,
   adminDashboard,
+  getDoctorById,
+  updateDoctorInfo,
 } from "../controllers/adminController.js";
 import authAdmin from "../middlewares/authAdmin.js";
 import { changeAvailablity } from "../controllers/doctorController.js";
@@ -20,5 +22,12 @@ adminRouter.post("/change-availability", authAdmin, changeAvailablity);
 adminRouter.get("/appointments", authAdmin, appointmentAdmin);
 adminRouter.post("/cancel-appointment", authAdmin, appointmentCancel);
 adminRouter.get("/dashboard", authAdmin, adminDashboard);
+adminRouter.get("/doctor-info/:docId", authAdmin, getDoctorById);
+adminRouter.post(
+  "/update-doctor/:docId",
+  authAdmin,
+  upload.single("image"),
+  updateDoctorInfo
+);
 
 export default adminRouter;

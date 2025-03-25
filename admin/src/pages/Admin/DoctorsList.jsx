@@ -1,10 +1,11 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useContext, useEffect } from 'react'
 import { AdminContext } from '../../context/AdminContext'
+import { assets } from '../../assets/assets'
 
 const DoctorsList = () => {
 
-    const { doctors, aToken, getAllDoctors, changeAvailability } = useContext(AdminContext)
+    const { doctors, aToken, getAllDoctors, changeAvailability, getDoctorData } = useContext(AdminContext)
 
     useEffect(() => {
         if (aToken) {
@@ -18,7 +19,10 @@ const DoctorsList = () => {
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 pt-5 gap-y-6">
                 {
                     doctors.map((item, index) => (
-                        <div key={index} className="border border-indigo-200 rounded-xl max-w-56 overflow-hidden cursor-pointer group">
+                        <div key={index} className="border border-indigo-200 rounded-xl max-w-56 overflow-hidden group relative">
+                            <button onClick={() => { getDoctorData(item._id) }} className='absolute end-0 top-0 me-1 mt-1 rounded-xl bg-[#C0EB6A] text-white p-0.5 group-hover:bg-white group-hover:text-[#C0EB6A]  cursor-pointer'>
+                                <img className='w-8' src={assets.edit_icon} alt="" />
+                            </button>
                             <img className='bg-indigo-50 group-hover:bg-[#C0EB6A] transition-all duration-500' src={item.image} alt="" />
                             <div className="p-4">
                                 <p className='text-neutral-800 text-lg font-medium'>{item.name}</p>
