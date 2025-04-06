@@ -5,7 +5,7 @@ import { assets } from '../../assets/assets'
 
 const DoctorsList = () => {
 
-    const { doctors, aToken, getAllDoctors, changeAvailability, getDoctorData } = useContext(AdminContext)
+    const { doctors, aToken, getAllDoctors, changeAvailability, getDoctorData, deleteDoctor } = useContext(AdminContext)
 
     useEffect(() => {
         if (aToken) {
@@ -20,9 +20,14 @@ const DoctorsList = () => {
                 {
                     doctors.map((item, index) => (
                         <div key={index} className="border border-indigo-200 rounded-xl max-w-56 overflow-hidden group relative">
-                            <button onClick={() => { getDoctorData(item._id) }} className='absolute end-0 top-0 me-1 mt-1 rounded-xl bg-[#C0EB6A] text-white p-0.5 group-hover:bg-white group-hover:text-[#C0EB6A]  cursor-pointer'>
-                                <img className='w-8' src={assets.edit_icon} alt="" />
-                            </button>
+                            <div className="hidden flex flex-col group-hover:block">
+                                <button onClick={() => { getDoctorData(item._id) }} className='absolute end-0 top-0 me-1 mt-1 rounded-xl bg-[#C0EB6A] text-white p-0.5 group-hover:bg-white group-hover:text-[#C0EB6A] cursor-pointer'>
+                                    <img className='w-7' src={assets.edit_icon} alt="" />
+                                </button>
+                                <button onClick={() => { deleteDoctor(item._id) }} className='absolute end-0 top-10 me-1 mt-1 rounded-xl bg-[#C0EB6A] text-white p-0.5 group-hover:bg-white group-hover:text-[#C0EB6A] cursor-pointer'>
+                                    <img className='w-7' src={assets.delete_icon} alt="" />
+                                </button>
+                            </div>
                             <img className='bg-indigo-50 group-hover:bg-[#C0EB6A] transition-all duration-500' src={item.image} alt="" />
                             <div className="p-4">
                                 <p className='text-neutral-800 text-lg font-medium'>{item.name}</p>

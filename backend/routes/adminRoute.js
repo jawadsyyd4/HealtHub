@@ -9,6 +9,7 @@ import {
   adminDashboard,
   getDoctorById,
   updateDoctorInfo,
+  deleteDoctor,
 } from "../controllers/adminController.js";
 import authAdmin from "../middlewares/authAdmin.js";
 import { changeAvailablity } from "../controllers/doctorController.js";
@@ -29,5 +30,7 @@ adminRouter.post(
   upload.single("image"),
   updateDoctorInfo
 );
+
+adminRouter.post("/delete-doctor/:doctorId", authAdmin, deleteDoctor);
 
 export default adminRouter;

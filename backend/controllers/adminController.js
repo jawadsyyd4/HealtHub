@@ -6,6 +6,8 @@ import doctorModel from "../models/doctorModel.js";
 import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
 import userModel from "../models/userModel.js";
+import DoctorSchedule from "../models/DoctorScheduleModel.js";
+import ratingModel from "../models/ratingModel.js";
 
 const addDoctor = async (req, res) => {
   try {
@@ -289,6 +291,38 @@ const updateDoctorInfo = async (req, res) => {
   }
 };
 
+const deleteDoctor = async (req, res) => {
+  const { doctorId } = req.params;
+  console.log(doctorId);
+  try {
+    // Step 1: Delete all appointments associated with the doctor
+    await appointmentModel.deleteMany({ doctorId });
+
+    // Step 2: Delete the doctor's schedule
+    await DoctorSchedule.deleteMany({ doctor: doctorId });
+
+    // Step 3: Delete all ratings associated with the doctor
+    await ratingModel.deleteMany({ doctorId: doctorId });
+
+    // Step 4: Delete the doctor record itself
+    const doctor = await doctorModel.findByIdAndDelete(doctorId);
+
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Doctor and associated data deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ message: "An error occurred while deleting the doctor", error });
+  }
+};
+
 export {
   addDoctor,
   loginAdmin,
@@ -298,4 +332,5 @@ export {
   adminDashboard,
   getDoctorById,
   updateDoctorInfo,
+  deleteDoctor,
 };

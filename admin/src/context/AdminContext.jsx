@@ -137,11 +137,29 @@ const AdminContextProvider = (props) => {
         }
     }
 
+    const deleteDoctor = async (docId) => {
+        try {
+            const { data } = await axios.post(
+                `${backendUrl}/api/admin/delete-doctor/${docId}`,
+                {},
+                { headers: { aToken } }
+            );
+
+            if (data.success) {
+                toast.success(data.message);
+                getAllDoctors();
+            }
+        } catch (error) {
+            toast.error(error.message);
+            console.error(error);
+        }
+    };
+
     const value = {
         aToken, setAToken,
         backendUrl, getAllDoctors, doctors, changeAvailability, getAllAppointments,
         appointments, setAppointments, cancelAppointment, getDashData, dashData,
-        specialities, setSpecialities, getAllSpecialities, deleteHandler, getDoctorData, docInfo, setDocInfo
+        specialities, setSpecialities, getAllSpecialities, deleteHandler, getDoctorData, docInfo, setDocInfo, deleteDoctor
     }
 
     return <AdminContext.Provider value={value}>

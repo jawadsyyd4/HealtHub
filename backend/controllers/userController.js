@@ -49,8 +49,67 @@ const registerUser = async (req, res) => {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Please verify your email",
-      html: `<h1>Verify your email</h1>
-           <p>Click <a href="http://localhost:4000/api/user/verify-email?code=${verificationCode}">here</a> to verify your email.</p>`,
+      html: `
+        <html>
+          <head>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                color: #333;
+                padding: 20px;
+              }
+              h1 {
+                color: #C0EB6A;
+                font-size: 24px;
+                text-align: center;
+              }
+              p {
+                font-size: 16px;
+                color: #555;
+                text-align: center;
+              }
+              a {
+                color: #C0EB6A;
+                text-decoration: none;
+                font-weight: bold;
+              }
+              a:hover {
+                text-decoration: underline;
+              }
+              .logo {
+                display: block;
+                margin: 0 auto 20px;
+                width: 150px; /* Adjust logo size as needed */
+              }
+              footer {
+                text-align: center;
+                margin-top: 30px;
+                font-size: 14px;
+                color: #777;
+              }
+              footer a {
+                color: #C0EB6A;
+                text-decoration: none;
+              }
+              footer a:hover {
+                text-decoration: underline;
+              }
+            </style>
+          </head>
+          <body>
+            <!-- Main content -->
+            <h1>Verify your email</h1>
+            <p>Click <a href="http://localhost:4000/api/user/verify-email?code=${verificationCode}">here</a> to verify your email.</p>
+    
+            <!-- Footer -->
+            <footer>
+              <p>If you did not request this email, please ignore it.</p>
+              <p>For any questions, contact our <a href="mailto:jawadsyyd@gmail.com">support team</a>.</p>
+            </footer>
+          </body>
+        </html>
+      `,
     };
 
     // Send email asynchronously and return a response once done
