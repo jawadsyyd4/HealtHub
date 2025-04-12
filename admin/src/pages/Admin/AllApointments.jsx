@@ -23,33 +23,33 @@ const AllApointments = () => {
             <p className='mb-3 text-lg font-medium'>All Appointments</p>
             <div className="bg-white border rounded text-sm max-h-[80vh] overflow-y-scroll min-h-[60vh]">
                 <div className="hidden sm:grid grid-cols-[0.5fr_3fr_1fr_3fr_3fr_1fr_1fr] grid-flow-col py-3 px-6 border-b">
-                    <p>#</p>
-                    <p>Patient</p>
-                    <p>Age</p>
-                    <p>Date & Time</p>
-                    <p>Doctor</p>
-                    <p>Fees</p>
-                    <p>Actions</p>
+                    <p className='m-auto'>#</p>
+                    <p className='m-auto'>Patient</p>
+                    <p className='m-auto'>Age</p>
+                    <p className='m-auto'>Date & Time</p>
+                    <p className='m-auto'>Doctor</p>
+                    <p className='m-auto'>Fees</p>
+                    <p className='m-auto'>Actions</p>
                 </div>
                 {appointments.reverse().map((item, index) => (
                     <div key={index} className="flex flex-wrap justify-between max-sm:gap-2 sm:grid sm:grid-cols-[0.5fr_3fr_1fr_3fr_3fr_1fr_1fr] items-center text-gray-500 py-3 px-6 border-b hover:bg-gray-50">
-                        <p className='max-sm:hidden'>{index + 1}</p>
-                        <div className="flex items-center gap-2">
+                        <p className='max-sm:hidden m-auto'>{index + 1}</p>
+                        <div className="flex items-center gap-2 m-auto">
                             <img className='w-8 rounded-full' src={item.userData.image} alt="" />
                             <p>{item.userData.name}</p>
                         </div>
-                        <p className='max-sm:hidden'>{calculateAge(item.userData.dob)}</p>
-                        <p>{slotDateFormat(item.slotDate)}, {item.slotTime}</p>
-                        <div className="flex items-center gap-2">
+                        <p className='max-sm:hidden m-auto'>{calculateAge(item.userData.dob)}</p>
+                        <p className='m-auto'>{slotDateFormat(item.slotDate)}, {item.slotTime}</p>
+                        <div className="flex items-center gap-2 m-auto">
                             <img className='w-8 rounded-full bg-gray-200' src={item.doctorData.image} alt="" />
                             <p>{item.doctorData.name}</p>
                         </div>
-                        <p>{currency}{item.amount}</p>
+                        <p className='max-sm:hidden m-auto'>{currency}{item.amount}</p>
                         {
                             item.cancelled
-                                ? <p className='text-red-400 text-xs font-medium'>Cancelled</p>
+                                ? <p className='text-red-400 text-xs font-medium m-auto'>Cancelled</p>
                                 : item.isCompleted
-                                    ? <p className='text-green-500 text-xs font-medium'>Completed</p> : <img onClick={() => cancelAppointment(item._id)} className='w-10 cursor-pointer' src={assets.cancel_icon} alt="" />
+                                    ? <p className='text-green-500 text-xs font-medium m-auto'>Completed</p> : <img onClick={() => cancelAppointment(item._id)} className='w-10 cursor-pointer m-auto' src={assets.cancel_icon} alt="" />
                         }
                     </div>
                 ))}

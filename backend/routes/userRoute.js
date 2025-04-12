@@ -5,6 +5,7 @@ import {
   getProfile,
   updateProfile,
   bookAppointment,
+  confirmAppointment,
   listAppointments,
   cancelAppointment,
   paymentStripepay,
@@ -13,6 +14,8 @@ import {
   rateDoctor,
   checkUserRating,
   getDocSlots,
+  forgetPassword,
+  resetPassword,
 } from "../controllers/userController.js";
 import authUser from "../middlewares/authUser.js";
 import upload from "../middlewares/multer.js";
@@ -21,6 +24,13 @@ const userRoute = express.Router();
 
 userRoute.post("/register", registerUser);
 userRoute.get("/verify-email", verifyEmail);
+
+// Route to request a password reset (forget password)
+userRoute.post("/forget-password", forgetPassword);
+
+// Route to reset the password
+userRoute.post("/reset-password", resetPassword);
+
 userRoute.post("/login", loginUser);
 userRoute.get("/get-profile", authUser, getProfile);
 userRoute.post(
@@ -43,5 +53,7 @@ userRoute.get("/payment/cancel", (req, res) => {
 userRoute.post("/rate-doctor", authUser, rateDoctor);
 userRoute.get("/user-rate/:doctorId", authUser, checkUserRating);
 userRoute.get("/availble-day/:doctorId", getDocSlots);
+
+userRoute.get("/confirm-appointment/:appointmentId", confirmAppointment);
 
 export default userRoute;

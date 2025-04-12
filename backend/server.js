@@ -7,6 +7,7 @@ import adminRouter from "./routes/adminRoute.js";
 import doctorRouter from "./routes/doctorRoute.js";
 import userRouter from "./routes/userRoute.js";
 import specialityRouter from "./routes/specialityRoute.js";
+import cancelExpiredAppointments from "./jobs/appointmentCleaner.js";
 
 // app config
 const app = express();
@@ -25,6 +26,8 @@ app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 app.use("/api/user", userRouter);
 app.use("/api/speciality", specialityRouter);
+
+cancelExpiredAppointments();
 
 // localhost:4000/api/admin
 

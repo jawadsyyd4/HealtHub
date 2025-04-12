@@ -244,6 +244,23 @@ const bookAppointment = async (req, res) => {
       return res.json({ success: false, message: "Doctor not available" });
     }
 
+    // Check if user already has an appointment at the same date and time
+    const existingAppointment = await appointmentModel.findOne({
+      userId,
+      slotDate,
+      slotTime,
+    });
+
+    if (existingAppointment) {
+      if (!existingAppointment.cancelled) {
+        return res.json({
+          success: false,
+          message:
+            "You already have an appointment with another doctor at this time. Please cancel it before booking a new one.",
+        });
+      }
+    }
+
     let slots_booked = docData.slots_booked;
 
     // Checking if slot available
@@ -263,7 +280,7 @@ const bookAppointment = async (req, res) => {
 
     delete docData.slots_booked; // Remove slots_booked to avoid saving it in the appointment
 
-    // Correctly assign doctor data and ID
+    // Create the appointment data
     const appointmentData = {
       userId,
       doctorId: docId, // Ensure docId is assigned to doctorId field
@@ -272,18 +289,7 @@ const bookAppointment = async (req, res) => {
       amount: docData.fees,
       slotTime,
       slotDate,
-      date: Date.now(),
-    };
-
-    // Send verification email.
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: userData.email,
-      subject: "Please confirm appointment",
-      html: `<h1>Confirm your appointment</h1>
-       <p>Your appointment is coming up on ${slotDate
-         .split("_")
-         .join("/")} at ${slotTime}</p>`,
+      date: Date.now(), // Current timestamp
     };
 
     // Create a new appointment
@@ -291,6 +297,119 @@ const bookAppointment = async (req, res) => {
 
     // Save the new appointment
     await newAppointment.save();
+
+    // Generate the confirmation link now that we have the appointment ID
+    const confirmationLink = `http://localhost:4000/api/user/confirm-appointment/${newAppointment._id}`;
+
+    // Format confirmation deadline with AM/PM
+    const confirmationDeadline = newAppointment.confirmationDeadline;
+    const confirmationDate = confirmationDeadline.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+    const confirmationTime = confirmationDeadline.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    // Send confirmation email with a link
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: userData.email,
+      subject: "Please confirm your appointment",
+      html: `
+        <html>
+          <head>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                background-color: #f9f9f9;
+                margin: 0;
+                padding: 0;
+                color: #333;
+              }
+              .container {
+                max-width: 600px;
+                margin: 0 auto;
+                background-color: #fff;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+              }
+              h1 {
+                text-align: center;
+                color: #C0EB6A;
+                font-size: 28px;
+              }
+              p {
+                font-size: 16px;
+                color: #555;
+                line-height: 1.6;
+              }
+              .appointment-details {
+                background-color: #f4f4f4;
+                padding: 15px;
+                border-radius: 8px;
+                margin-top: 20px;
+                font-size: 16px;
+              }
+              .appointment-details p {
+                margin: 5px 0;
+              }
+              .btn {
+                display: inline-block;
+                background-color: #C0EB6A;
+                color: white;
+                padding: 10px 20px;
+                text-decoration: none;
+                border-radius: 5px;
+                margin-top: 20px;
+                font-size: 16px;
+                text-align: center;
+              }
+              .btn:hover {
+                background-color: #45a049;
+              }
+              footer {
+                margin-top: 30px;
+                text-align: center;
+                font-size: 14px;
+                color: #777;
+              }
+              footer a {
+                color: #C0EB6A;
+                text-decoration: none;
+              }
+              footer a:hover {
+                text-decoration: underline;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>Appointment Confirmation</h1>
+              <p>Dear ${userData.name},</p>
+              <p>We are happy to inform you that your appointment is scheduled for:</p>
+              <div class="appointment-details">
+                <p><strong>Date:</strong> ${slotDate.split("_").join("/")}</p>
+                <p><strong>Time:</strong> ${slotTime}</p>
+                <p><strong>Doctor:</strong> Dr. ${docData.name}</p>
+                <p><strong>Specialty:</strong> ${docData.speciality}</p>
+              </div>
+              <p>Please confirm your attendance by clicking the button below:</p>
+              <a href="${confirmationLink}" class="btn">Confirm Appointment</a>
+              <p><strong>Note:</strong> You must confirm your appointment before the confirmation deadline of ${confirmationDate} ${confirmationTime}.</p>
+              <footer>
+                <p>If you did not request this appointment, please disregard this email.</p>
+                <p>If you have any questions or need to reschedule, feel free to contact us.</p>
+              </footer>
+            </div>
+          </body>
+        </html>
+      `,
+    };
 
     // Save the updated slot bookings back to the doctor model
     await doctorModel.findByIdAndUpdate(docId, { slots_booked });
@@ -304,12 +423,43 @@ const bookAppointment = async (req, res) => {
       return res.json({
         success: true,
         message:
-          "Appointment booked! Please check your email to confirm appointment.",
+          "Appointment booked! Please check your email to confirm the appointment.",
       });
     });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
+  }
+};
+
+const confirmAppointment = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+
+    // Find the appointment
+    const appointment = await appointmentModel.findById(appointmentId);
+
+    if (!appointment) {
+      return res.json({ success: false, message: "Appointment not found" });
+    }
+
+    // Check if the confirmation deadline has passed
+    const now = new Date();
+    if (now > appointment.confirmationDeadline) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Confirmation deadline has passed" });
+    }
+
+    // Confirm the appointment
+    appointment.confirmed = true;
+    await appointment.save();
+
+    // Redirect to the "my appointments" page
+    res.redirect("http://localhost:5173/my-appointments");
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -564,12 +714,165 @@ const getDocSlots = async (req, res) => {
   }
 };
 
+// Forget Password - Step 1: Request reset
+const forgetPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Find the user by email
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Generate a password reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpire = Date.now() + 3600000; // 1 hour expiration time
+    await user.save();
+
+    // Use an environment variable for the base URL to allow flexibility between dev and prod
+    const resetLink = `${
+      process.env.FRONTEND_URL || "http://localhost:5173"
+    }/reset-password?token=${resetToken}`;
+
+    // Setup transporter for email
+    const transporter = nodemailer.createTransport({
+      service: "Gmail", // Use a proper email service (or a dedicated email service like SendGrid in production)
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+
+    // Send the reset link to the user's email
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Password Reset Request",
+      html: `
+        <html>
+          <head>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                color: #333;
+                padding: 20px;
+              }
+              h1 {
+                color: #C0EB6A;
+                font-size: 24px;
+                text-align: center;
+              }
+              p {
+                font-size: 16px;
+                color: #555;
+                text-align: center;
+              }
+              a {
+                color: #C0EB6A;
+                text-decoration: none;
+                font-weight: bold;
+              }
+              a:hover {
+                text-decoration: underline;
+              }
+              .logo {
+                display: block;
+                margin: 0 auto 20px;
+                width: 150px; /* Adjust logo size as needed */
+              }
+              footer {
+                text-align: center;
+                margin-top: 30px;
+                font-size: 14px;
+                color: #777;
+              }
+              footer a {
+                color: #C0EB6A;
+                text-decoration: none;
+              }
+              footer a:hover {
+                text-decoration: underline;
+              }
+            </style>
+          </head>
+          <body>
+            <!-- Main content -->
+            <h1>Password Reset Request</h1>
+            <p>You requested a password reset. Please click the link below to reset your password:</p>
+            <p><a href="${resetLink}">Reset Your Password</a></p>
+    
+            <!-- Footer -->
+            <footer>
+              <p>This link will expire in 1 hour.</p>
+              <p>If you did not request this change, please ignore this email.</p>
+              <p>For any questions, contact our <a href="mailto:support@yourcompany.com">support team</a>.</p>
+            </footer>
+          </body>
+        </html>
+      `,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset link sent to your email",
+    });
+  } catch (err) {
+    console.error(err); // Log the error for debugging purposes
+    res.status(500).json({
+      success: false,
+      message: "Error processing request",
+      error: err.message,
+    });
+  }
+};
+
+// Reset Password - Step 2: Reset password using the token
+const resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+  console.log(token);
+  console.log(password);
+  try {
+    const user = await userModel.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpire: { $gt: Date.now() }, // Check if the token is expired
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired reset token" });
+    }
+
+    // Hash the new password and save it
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Password successfully reset" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error resetting password", error: err.message });
+  }
+};
+
 export {
   registerUser,
   loginUser,
   getProfile,
   updateProfile,
   bookAppointment,
+  confirmAppointment,
   listAppointments,
   cancelAppointment,
   paymentStripepay,
@@ -578,4 +881,6 @@ export {
   rateDoctor,
   checkUserRating,
   getDocSlots,
+  forgetPassword,
+  resetPassword,
 };

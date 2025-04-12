@@ -58,7 +58,6 @@ const AdminContextProvider = (props) => {
 
             if (data.success) {
                 setAppointments(data.appointments)
-                console.table(data.appointments);
             } else {
                 toast.error(data.message)
             }

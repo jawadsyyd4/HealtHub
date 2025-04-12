@@ -17,7 +17,7 @@ const MyAppointments = () => {
 
     const slotDateFormat = (slotDate) => {
         const dateArray = slotDate.split('-')
-        return dateArray[0] + " " + months[Number(dateArray[1])] + " " + dateArray[2]
+        return dateArray[2] + " " + months[Number(dateArray[1])] + " " + dateArray[0]
     }
 
     const [docId, setDocId] = useState(false)
@@ -134,7 +134,7 @@ const MyAppointments = () => {
                         </div>
 
                         <div className="flex-1 text-sm text-zinc-600">
-                            <p className="text-neutral-800 font-semibold">{item.doctorData.name}</p>
+                            <p className="text-neutral-800 font-semibold">Dr. {item.doctorData.name}</p>
                             <p>{item.doctorData.speciality}</p>
                             <p className="text-zinc-700 font-medium mt-1">Address:</p>
                             <p className="text-xs">{item.doctorData.address.line1}</p>

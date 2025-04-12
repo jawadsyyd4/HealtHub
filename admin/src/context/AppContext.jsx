@@ -21,7 +21,7 @@ const AppContextProvider = (props) => {
 
     const slotDateFormat = (slotDate) => {
         const dateArray = slotDate.split('-')
-        return dateArray[0] + " " + months[Number(dateArray[1])] + " " + dateArray[2]
+        return dateArray[2] + " " + months[Number(dateArray[1])] + " " + dateArray[0]
     }
 
     const value = {

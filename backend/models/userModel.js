@@ -15,6 +15,14 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, default: "000000000" },
   verificationCode: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
+  resetPasswordToken: {
+    type: String,
+    default: null,
+  },
+  resetPasswordExpire: {
+    type: Date,
+    default: null,
+  },
 });
 
 const userModel = mongoose.models.user || mongoose.model("user", userSchema);

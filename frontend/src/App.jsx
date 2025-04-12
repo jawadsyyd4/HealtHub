@@ -12,15 +12,18 @@ import { ToastContainer } from 'react-toastify';
 import { Route, Routes, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import ForgotPassword from './pages/ForgetPassword';  // Adjust path as needed
+import ResetPassword from './pages/ResetPassword'
 
 const App = () => {
   const location = useLocation(); // Hook to get current location
 
-  const isLoginPage = location.pathname === '/login';
+  // Corrected condition to check if we're on the login, forgot-password, or reset-password pages
+  const isLoginPage = location.pathname === '/login' || location.pathname === '/forgot-password' || location.pathname === '/reset-password';
 
   return (
     <div className='mx-4 sm:mx-[10%]'>
-      {/* Only render Navbar and Footer if we're not on the /login page */}
+      {/* Only render Navbar and Footer if we're not on the login, forgot-password, or reset-password pages */}
       {!isLoginPage && <Navbar />}
 
       <ToastContainer />
@@ -35,12 +38,14 @@ const App = () => {
         <Route path='/my-profile' element={<MyProfile />} />
         <Route path='/my-appointments' element={<MyAppointments />} />
         <Route path='/appointment/:docId' element={<Appointment />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
 
-      {/* Only render Footer if we're not on the /login page */}
+      {/* Only render Footer if we're not on the login, forgot-password, or reset-password pages */}
       {!isLoginPage && <Footer />}
     </div>
   );
 }
 
-export default App
+export default App;

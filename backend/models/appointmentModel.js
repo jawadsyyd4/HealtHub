@@ -12,6 +12,15 @@ const appointmentSchema = new mongoose.Schema({
   cancelled: { type: Boolean, default: false },
   payment: { type: Boolean, default: false },
   isCompleted: { type: Boolean, default: false },
+  confirmed: { type: Boolean, default: false }, // New field for confirmation
+  confirmationDeadline: {
+    type: Date,
+    required: true,
+    default: function () {
+      const now = new Date();
+      return new Date(now.getTime() + 14 * 60 * 60 * 1000); // Default is 14 hours from now
+    },
+  }, // Deadline to confirm within 14 hours
 });
 
 const appointmentModel =
