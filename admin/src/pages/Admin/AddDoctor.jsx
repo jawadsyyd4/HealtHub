@@ -6,6 +6,8 @@ import { toast } from 'react-toastify';
 import axios from "axios"
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'
+import LoadingComponent from '../../components/LoadingComponent';
+import { FaUserEdit } from 'react-icons/fa';
 const AddDoctor = () => {
 
     const { backendUrl, aToken, specialities, getAllSpecialities, docInfo, setDocInfo } = useContext(AdminContext)
@@ -21,6 +23,9 @@ const AddDoctor = () => {
     const [address1, setAddress1] = useState(docInfo ? docInfo.address.line1 : '')
     const [address2, setAddress2] = useState(docInfo ? docInfo.address.line2 : '')
     const [degree, setDegree] = useState(docInfo ? docInfo.degree : '')
+
+    const [loading, setLoading] = useState(false);
+
     const navigate = useNavigate('')
 
     useEffect(() => {
@@ -31,6 +36,8 @@ const AddDoctor = () => {
 
     const onSubmitHandler = async (event) => {
         event.preventDefault()
+        setLoading(true); // Start loading
+
         try {
 
             if (!docImg) {
@@ -72,10 +79,14 @@ const AddDoctor = () => {
         } catch (error) {
             toast.error(error.message)
             console.log(error);
+        } finally {
+            setLoading(false); // Stop loading
         }
     }
 
     const updateDocInfo = async (name, degree, speciality, about, fees, address1, address2, experience) => {
+        setLoading(true); // Start loading
+
         try {
 
             const formData = new FormData()
@@ -112,6 +123,8 @@ const AddDoctor = () => {
         } catch (error) {
             toast.error(error.message)
             console.log(error);
+        } finally {
+            setLoading(false); // Stop loading
         }
     }
 
@@ -309,12 +322,32 @@ const AddDoctor = () => {
                             : <textarea onChange={(e) => setAbout(e.target.value)} value={about} className='w-full px-4 pt-2 border rounded' placeholder='Write about doctor' rows={5} required />
                     }
                 </div>
-                {
-                    docInfo ?
-                        <button onClick={() => { updateDocInfo(docInfo.name, docInfo.degree, speciality, docInfo.about, docInfo.fees, address1, address2, docInfo.experience) }} type='button' className='bg-[#C0EB6A] px-10 py-3 mt-4 text-white rounded-full cursor-pointer'>Update doctor information</button>
-                        :
-                        <button type='submit' className='bg-[#C0EB6A] px-10 py-3 mt-4 text-white rounded-full cursor-pointer'>Add doctor</button>
-                }
+                {loading && (
+                    <LoadingComponent
+                        icon={<FaUserEdit className="text-[#C0EB6A] text-4xl mb-4 animate-bounce" />}
+                        message={docInfo ? "Updating doctor info..." : "Adding new doctor..."}
+                    />
+                )}
+
+                {docInfo ? (
+                    <button
+                        onClick={() => { updateDocInfo(docInfo.name, docInfo.degree, speciality, docInfo.about, docInfo.fees, address1, address2, docInfo.experience) }}
+                        type="button"
+                        className="bg-[#C0EB6A] px-10 py-3 mt-4 text-white rounded-full cursor-pointer"
+                        disabled={loading}
+                    >
+                        Update doctor information
+                    </button>
+                ) : (
+                    <button
+                        type="submit"
+                        className="bg-[#C0EB6A] px-10 py-3 mt-4 text-white rounded-full cursor-pointer"
+                        disabled={loading}
+                    >
+                        Add doctor
+                    </button>
+                )}
+
             </div>
         </form>
     )

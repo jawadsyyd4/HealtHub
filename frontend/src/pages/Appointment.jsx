@@ -6,6 +6,9 @@ import { assets } from '../assets/assets';
 import RelatedDoctors from '../components/RelatedDoctors';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import AvgRating from '../components/AvgRating';
+import LoadingComponent from '../components/LoadingComponent';
+import { FaRegCalendarCheck } from 'react-icons/fa';
 
 const Appoitment = () => {
 
@@ -20,6 +23,11 @@ const Appoitment = () => {
     const [bookingTime, setBookingTime] = useState(false)
 
     const [docInfo, setDocInfo] = useState(null)
+
+    const [avgRating, setavgRating] = useState(0)
+
+    const [loading, setLoading] = useState(false);
+
 
     const fetchDocInfo = async () => {
         const docInfo = await doctors.find(doc => doc._id === docId)
@@ -108,6 +116,7 @@ const Appoitment = () => {
             toast.warn('Login to book appointment')
             return navigate('/login')
         }
+        setLoading(true); // Start loading
         try {
             if (slotTime.split(':')[0] < 13) {
                 slotTime = slotTime + " AM"
@@ -127,12 +136,27 @@ const Appoitment = () => {
         } catch (error) {
             console.log(error);
             toast.error(error.message)
+        } finally {
+            setLoading(false); // Stop loading
+        }
+    }
+
+    const getDoctorAVGRating = async (docId) => {
+        try {
+            const { data } = await axios.get(backendUrl + `/api/doctor/rating/${docId}`)
+            if (data.success) {
+                setavgRating(data.averageRating)
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error(error.message)
         }
     }
 
     useEffect(() => {
         fetchDocInfo();
         getDocSlots();
+        getDoctorAVGRating(docId)
     }, [doctors, docId]);
 
     return docInfo && (
@@ -155,6 +179,9 @@ const Appoitment = () => {
                         <button className="py-0.5 px-2 border text-xs rounded-full">
                             {docInfo.experience}
                         </button>
+                    </div>
+                    <div className="">
+                        {token && <AvgRating rating={avgRating} />}
                     </div>
                     {/* DOCTOR ABOUT */}
                     <div className="">
@@ -206,7 +233,15 @@ const Appoitment = () => {
                                         </div>
                                     ))}
                                 </div>
-                                <button onClick={() => bookAppointment(bookingDate, bookingTime)} className='bg-[#C0EB6A] text-white text-sm font-light px-14 py-3 rounded-full my-6 cursor-pointer hover:scale-105'>Book an appointment</button>
+                                {/* <button onClick={() => bookAppointment(bookingDate, bookingTime)} disabled={loading} className='bg-[#C0EB6A] text-white text-sm font-light px-14 py-3 rounded-full my-6 cursor-pointer hover:scale-105'>{loading ? 'Booking...' : 'Book Appointment'}</button> */}
+                                {loading && <LoadingComponent icon={<FaRegCalendarCheck className="text-[#C0EB6A] text-4xl mb-4 animate-bounce" />} message="Scheduling your appointment..." />}
+                                <button
+                                    onClick={() => bookAppointment(bookingDate, bookingTime)}
+                                    className='bg-[#C0EB6A] text-white text-sm font-light px-14 py-3 rounded-full my-6 cursor-pointer hover:scale-105'
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Booking...' : 'Book Appointment'}
+                                </button>
                             </div>
                         ) : (
                             <p>Loading available times...</p>

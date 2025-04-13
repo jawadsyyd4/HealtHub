@@ -15,23 +15,23 @@ const Sidebar = () => {
             {
                 aToken
                     ? <ul className='text-[#515151] mt-5'>
-                        <NavLink className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/admin-dashboard'}>
+                        <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/admin-dashboard'}>
                             <img src={assets.home_icon} />
                             <p className='hidden lg:block'>Dashboard</p>
                         </NavLink>
-                        <NavLink className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/all-appointments'}>
+                        <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/all-appointments'}>
                             <img src={assets.appointment_icon} />
                             <p className='hidden lg:block'>Appointments</p>
                         </NavLink>
-                        <NavLink className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/add-doctor'}>
+                        <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/add-doctor'}>
                             <img src={assets.add_icon} />
                             <p className='hidden lg:block'>Add Doctor</p>
                         </NavLink>
-                        <NavLink className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-list'}>
+                        <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-list'}>
                             <img src={assets.people_icon} />
                             <p className='hidden lg:block'>Doctors List</p>
                         </NavLink>
-                        <NavLink className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/add-speciality'}>
+                        <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/add-speciality'}>
                             <img className='w-8' src={assets.speciality_icon} />
                             <p className='hidden lg:block'>Speciality</p>
                         </NavLink>
@@ -44,19 +44,19 @@ const Sidebar = () => {
             {
                 dToken
                     ? <ul className='text-[#515151] mt-5'>
-                        <NavLink className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-dashboard'}>
+                        <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-dashboard'}>
                             <img src={assets.home_icon} />
                             <p className='hidden lg:block'>Dashboard</p>
                         </NavLink>
-                        <NavLink className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-appointments'}>
+                        <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-appointments'}>
                             <img src={assets.appointment_icon} />
                             <p className='hidden lg:block'>Appointments</p>
                         </NavLink>
-                        <NavLink className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-profile'}>
+                        <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-profile'}>
                             <img src={assets.people_icon} />
                             <p className='hidden lg:block'>Profile</p>
                         </NavLink>
-                        <NavLink className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-schedule'}>
+                        <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-schedule'}>
                             <img className='w-6' src={assets.dailyScheduleIcon} />
                             <p className='hidden lg:block'>Schedule</p>
                         </NavLink>

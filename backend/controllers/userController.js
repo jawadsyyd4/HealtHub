@@ -612,7 +612,10 @@ async function handlePaymentSuccess(req, res) {
   try {
     const updatedAppointment = await appointmentModel.findByIdAndUpdate(
       appointmentId,
-      { payment: true }, // Update paymentStatus to true
+      {
+        payment: true,
+        confirmed: true, // Set confirmed to true
+      },
       { new: true } // Return the updated document
     );
 

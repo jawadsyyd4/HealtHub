@@ -6,6 +6,8 @@ import { toast } from 'react-toastify';
 import axios from "axios"
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { FaStethoscope } from 'react-icons/fa';
+import LoadingComponent from '../../components/LoadingComponent';
 
 const AddSpeciality = () => {
     const { backendUrl, aToken, specialities, getAllSpecialities, deleteHandler } = useContext(AdminContext)
@@ -16,7 +18,12 @@ const AddSpeciality = () => {
     const [isEdit, setIsEdit] = useState(false)
     const [currentEditId, setCurrentEditId] = useState(false)
 
+    const [loading, setLoading] = useState(false);
+
+
     const onSubmitHandler = async () => {
+        setLoading(true); // Start loading
+
         try {
 
             if (!specialityImg) {
@@ -41,11 +48,15 @@ const AddSpeciality = () => {
         } catch (error) {
             toast.error(error.message)
             console.log(error);
+        } finally {
+            setLoading(false); // Stop loading
         }
 
     }
 
     const editHandler = async (specialityId, specialityName) => {
+        setLoading(true); // Start loading
+
         try {
             const formData = new FormData();
 
@@ -79,6 +90,8 @@ const AddSpeciality = () => {
         } catch (error) {
             toast.error(error.message);
             console.log(error);
+        } finally {
+            setLoading(false); // Stop loading
         }
     };
 
@@ -193,11 +206,12 @@ const AddSpeciality = () => {
                                         Cancel
                                     </button>
 
-                                    {/* Add Speciality Button */}
                                     <button
                                         type="submit"
                                         onClick={() => { onSubmitHandler() }}
-                                        className="cursor-pointer inline-flex w-full justify-center rounded-md bg-[#C0EB6A] px-6 py-2 text-white font-semibold text-lg shadow-md hover:bg-[#4e5bdb] sm:ml-3 sm:w-auto transition-all">
+                                        className="cursor-pointer inline-flex w-full justify-center rounded-md bg-[#C0EB6A] px-6 py-2 text-white font-semibold text-lg shadow-md hover:bg-[#4e5bdb] sm:ml-3 sm:w-auto transition-all"
+                                        disabled={loading}
+                                    >
                                         Add Speciality
                                     </button>
                                 </div>
@@ -271,6 +285,13 @@ const AddSpeciality = () => {
                             </div>
 
                             <div className="flex items-center justify-end gap-4">
+                                {loading && (
+                                    <LoadingComponent
+                                        icon={<FaStethoscope className="text-[#C0EB6A] text-4xl mb-4 animate-bounce" />
+                                        }
+                                        message={isEdit ? "Update speciality..." : "Adding new speciality..."}
+                                    />
+                                )}
                                 {
                                     isEdit && currentEditId === item._id
                                         ?

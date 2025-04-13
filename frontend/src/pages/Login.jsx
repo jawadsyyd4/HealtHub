@@ -4,6 +4,7 @@ import axios from 'axios';
 import { AppContext } from '../context/AppContext';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { FaUserPlus, FaSignInAlt } from 'react-icons/fa';
 
 const Login = () => {
     const { backendUrl, setToken } = useContext(AppContext);
@@ -13,9 +14,11 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const onSubmitHandler = async (event) => {
         event.preventDefault();
+        setLoading(true); // Start loading
 
         try {
             if (state === 'Sign Up') {
@@ -40,6 +43,8 @@ const Login = () => {
             }
         } catch (error) {
             toast.error(error.message);
+        } finally {
+            setLoading(false); // Stop loading
         }
     };
 
@@ -99,10 +104,22 @@ const Login = () => {
                 </div>
 
                 <button
-                    type='submit'
-                    className='cursor-pointer bg-[#C0EB6A] text-white w-full py-2 rounded-md text-base'
+                    type="submit"
+                    className="cursor-pointer bg-[#C0EB6A] text-white w-full py-2 rounded-md text-base flex items-center justify-center gap-2"
+                    disabled={loading}
                 >
-                    {state === 'Sign Up' ? "Create Account" : "Login"}
+                    {loading ? (
+                        <>
+                            {state === 'Sign Up' ? (
+                                <FaUserPlus className="animate-bounce" />
+                            ) : (
+                                <FaSignInAlt className="animate-bounce" />
+                            )}
+                            {state === 'Sign Up' ? "Creating Account..." : "Logging in..."}
+                        </>
+                    ) : (
+                        state === 'Sign Up' ? "Create Account" : "Login"
+                    )}
                 </button>
                 {state === 'Sign Up' ? (
                     <p>

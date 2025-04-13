@@ -4,6 +4,8 @@ import { AppContext } from '../context/AppContext';
 import { assets } from '../assets/assets';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import LoadingComponent from '../components/LoadingComponent';
+import { FaUserEdit } from 'react-icons/fa';
 
 const MyProfile = () => {
 
@@ -14,7 +16,11 @@ const MyProfile = () => {
 
     const [image, setImage] = useState(false)
 
+    const [loading, setLoading] = useState(false);
+
     const updateUserProfileData = async () => {
+        setLoading(true); // Start loading
+
         try {
 
             const formData = new FormData()
@@ -40,6 +46,8 @@ const MyProfile = () => {
         } catch (error) {
             console.log(error);
             toast.error(error.message)
+        } finally {
+            setLoading(false); // Stop loading
         }
     }
 
@@ -113,11 +121,31 @@ const MyProfile = () => {
                 </div>
             </div>
             <div className="mt-10">
-                {
-                    isEdit
-                        ? <button className='cursor-pointer border border-[#C0EB6A] px-8 py-2 rounded-full hover:text-white hover:bg-[#C0EB6A] transition-all' onClick={updateUserProfileData}>Save Information</button>
-                        : <button className='cursor-pointer border border-[#C0EB6A] px-8 py-2 rounded-full hover:text-white hover:bg-[#C0EB6A] transition-all' onClick={() => setIsEdit(true)}>Edit</button>
-                }
+                {loading && (
+                    <LoadingComponent
+                        icon={<FaUserEdit className="text-[#C0EB6A] text-4xl mb-4 animate-bounce" />}
+                        message="Updating your profile..."
+                    />
+                )}
+
+                {isEdit ? (
+                    <button
+                        className="cursor-pointer border border-[#C0EB6A] px-8 py-2 rounded-full hover:text-white hover:bg-[#C0EB6A] transition-all"
+                        onClick={updateUserProfileData}
+                        disabled={loading}
+                    >
+                        Save Information
+                    </button>
+                ) : (
+                    <button
+                        className="cursor-pointer border border-[#C0EB6A] px-8 py-2 rounded-full hover:text-white hover:bg-[#C0EB6A] transition-all"
+                        onClick={() => setIsEdit(true)}
+                        disabled={loading}
+                    >
+                        Edit
+                    </button>
+                )}
+
             </div>
         </div>
     )

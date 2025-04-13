@@ -293,7 +293,6 @@ const getDoctorRatings = async (req, res) => {
 const getDoctorAverageRating = async (req, res) => {
   try {
     const { doctorId } = req.params;
-
     const ratings = await ratingModel.find({ doctorId });
 
     if (ratings.length === 0) {
@@ -305,8 +304,7 @@ const getDoctorAverageRating = async (req, res) => {
       0
     );
     const averageRating = totalRatings / ratings.length;
-
-    res.status(200).json({ averageRating });
+    res.json({ success: true, averageRating });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
