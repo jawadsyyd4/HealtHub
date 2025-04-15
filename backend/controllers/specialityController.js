@@ -1,3 +1,4 @@
+import doctorModel from "../models/doctorModel.js";
 import specialityModel from "../models/specialityModel.js";
 import { v2 as cloudinary } from "cloudinary";
 
@@ -42,19 +43,68 @@ const getSpecialities = async (req, res) => {
   }
 };
 
+// const deleteSpeciality = async (req, res) => {
+//   try {
+//     const { specialityId } = req.body;
+
+//     // Find the speciality to get its name (if you want to use the name in messages)
+//     const specialityToDelete = await specialityModel.findById(specialityId);
+
+//     if (!specialityToDelete) {
+//       return res.json({ success: false, message: "Speciality not found" });
+//     }
+
+//     // Automatically remove all doctors with the same speciality
+//     const { deletedCount } = await doctorModel.deleteMany({
+//       speciality: specialityId,
+//     });
+
+//     // Delete the speciality itself
+//     const deletedSpeciality = await specialityModel.findByIdAndDelete(
+//       specialityId
+//     );
+
+//     if (!deletedSpeciality) {
+//       // This should ideally not happen if the findById above succeeded,
+//       // but adding a check for robustness.
+//       return res.json({ success: false, message: "Speciality not found" });
+//     }
+
+//     res.json({
+//       success: true,
+//       message: `Speciality "${specialityToDelete.name}" and ${deletedCount} associated doctors deleted successfully`,
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     res.json({ success: false, message: error.message });
+//   }
+// };
+
 const deleteSpeciality = async (req, res) => {
   try {
     const { specialityId } = req.body;
 
-    const speciality = await specialityModel.findByIdAndDelete(specialityId);
+    // Check if the speciality exists
+    const specialityToDelete = await specialityModel.findById(specialityId);
 
-    if (!speciality) {
+    if (!specialityToDelete) {
       return res.json({ success: false, message: "Speciality not found" });
     }
 
-    res.json({ success: true, message: "Speciality deleted successfully" });
+    // Delete all doctors associated with this speciality
+    const { deletedCount } = await doctorModel.deleteMany({
+      speciality: specialityId,
+    });
+
+    // Delete the speciality itself
+    await specialityModel.findByIdAndDelete(specialityId);
+
+    res.json({
+      success: true,
+      message: `Speciality "${specialityToDelete.name}" and ${deletedCount} associated doctor(s) deleted successfully.`,
+    });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: error.message });
   }
 };

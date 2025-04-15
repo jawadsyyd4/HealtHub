@@ -10,7 +10,7 @@ const RelatedDoctors = ({ docId, speciality }) => {
     const navigate = useNavigate()
     useEffect(() => {
         if (doctors.length > 0 && speciality) {
-            const doctorsData = doctors.filter((doc) => doc.speciality === speciality && doc._id != docId)
+            const doctorsData = doctors.filter((doc) => doc.speciality.name === speciality && doc._id != docId)
             setRelDoc(doctorsData)
         }
     }, [doctors, docId, speciality])
@@ -30,7 +30,7 @@ const RelatedDoctors = ({ docId, speciality }) => {
                                 <p>{item.available ? 'available' : 'disable'}</p>
                             </div>
                             <p className="font-medium text-lg">{item.name}</p>
-                            <p className="text-sm text-gray-600">{item.speciality}</p>
+                            <p className="text-sm text-gray-600">{item.speciality.name}</p>
                         </div>
                     </div>
                 ))

@@ -8,6 +8,7 @@ import appointmentModel from "../models/appointmentModel.js";
 import userModel from "../models/userModel.js";
 import DoctorSchedule from "../models/DoctorScheduleModel.js";
 import ratingModel from "../models/ratingModel.js";
+import specialityModel from "../models/specialityModel.js";
 
 const addDoctor = async (req, res) => {
   try {
@@ -23,7 +24,9 @@ const addDoctor = async (req, res) => {
       fees,
     } = req.body;
     const imageFile = req.file;
-
+    const specialtyDocument = await specialityModel.findOne({
+      name: speciality,
+    });
     // checking for all data to add doctor
     if (
       !name ||
@@ -70,7 +73,7 @@ const addDoctor = async (req, res) => {
       email,
       image: imageUrl,
       password: hashedPassword,
-      speciality,
+      speciality: specialtyDocument._id,
       degree,
       experience,
       about,
@@ -109,7 +112,11 @@ const loginAdmin = async (req, res) => {
 
 const allDoctors = async (req, res) => {
   try {
-    const doctors = await doctorModel.find({}).select("-password");
+    const doctors = await doctorModel
+      .find({})
+      .select("-password")
+      .populate("speciality"); // Populate the 'speciality' field
+
     res.json({ success: true, doctors });
   } catch (error) {
     console.log(error);
@@ -217,7 +224,11 @@ const getDoctorById = async (req, res) => {
     if (!docId) {
       return res.json({ success: false, message: "Doctor Id is required" });
     }
-    const doctor = await doctorModel.findById(docId).select("-password");
+    const doctor = await doctorModel
+      .findById(docId)
+      .select("-password")
+      .populate("speciality"); // Populate the 'speciality' field
+
     if (!doctor) {
       return res.json({ success: false, message: "Doctor not found" });
     }
@@ -266,10 +277,12 @@ const updateDoctorInfo = async (req, res) => {
       });
       imageUrl = imageUpload.secure_url; // Get the new image URL
     }
-
+    const specialtyDocument = await specialityModel.findOne({
+      name: speciality,
+    });
     // Update the doctor's details
     doctor.name = name || doctor.name;
-    doctor.speciality = speciality || doctor.speciality;
+    doctor.speciality = specialtyDocument._id || doctor.speciality;
     doctor.degree = degree || doctor.degree;
     doctor.experience = experience || doctor.experience;
     doctor.about = about || doctor.about;

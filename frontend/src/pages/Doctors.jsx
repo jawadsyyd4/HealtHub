@@ -10,7 +10,7 @@ const Doctors = () => {
     const { doctors, specialities, loadSpecialities, token } = useContext(AppContext)
     const applyFilter = () => {
         if (speciality) {
-            setFilterDoc(doctors.filter(doc => doc.speciality === speciality))
+            setFilterDoc(doctors.filter(doc => doc.speciality.name === speciality))
         } else {
             setFilterDoc(doctors)
         }
@@ -57,7 +57,7 @@ const Doctors = () => {
                                         <p>{item.available ? 'available' : 'disable'}</p>
                                     </div>
                                     <p className="font-medium text-lg">Dr. {item.name}</p>
-                                    <p className="text-sm text-gray-600">{item.speciality}</p>
+                                    <p className="text-sm text-gray-600">{item.speciality.name}</p>
                                 </div>
                             </div>
                         ))

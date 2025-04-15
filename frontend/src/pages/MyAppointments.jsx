@@ -135,7 +135,7 @@ const MyAppointments = () => {
 
                         <div className="flex-1 text-sm text-zinc-600">
                             <p className="text-neutral-800 font-semibold">Dr. {item.doctorData.name}</p>
-                            <p>{item.doctorData.speciality}</p>
+                            <p>{item.doctorData.speciality.name}</p>
                             <p className="text-zinc-700 font-medium mt-1">Address:</p>
                             <p className="text-xs">{item.doctorData.address.line1}</p>
                             <p className="text-xs">{item.doctorData.address.line2}</p>

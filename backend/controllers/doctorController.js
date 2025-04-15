@@ -8,11 +8,23 @@ import nodemailer from "nodemailer";
 
 const doctorsList = async (req, res) => {
   try {
-    const doctors = await doctorModel.find({}).select(["-password", "-email"]);
-    res.json({ success: true, doctors });
+    const doctors = await doctorModel
+      .find({})
+      .select("-password -email") // Exclude sensitive fields
+      .populate("speciality"); // Populate the speciality reference
+
+    res.json({
+      success: true,
+      doctors,
+    });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error("Error fetching doctors list:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve doctors list.",
+      error: error.message,
+    });
   }
 };
 
@@ -188,7 +200,8 @@ const doctorProfile = async (req, res) => {
 
     const profileData = await doctorModel
       .findById(doctorId)
-      .select("-password");
+      .select("-password")
+      .populate("speciality"); // This line fetches full speciality info
 
     res.json({ success: true, profileData });
   } catch (error) {

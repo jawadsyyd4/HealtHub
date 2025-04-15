@@ -239,7 +239,10 @@ const bookAppointment = async (req, res) => {
     const { userId, docId, slotDate, slotTime } = req.body;
 
     // Fetch doctor data and check availability
-    const docData = await doctorModel.findById(docId).select("-password");
+    const docData = await doctorModel
+      .findById(docId)
+      .select("-password")
+      .populate("speciality"); // Populate the 'speciality' field
 
     if (!docData.available) {
       return res.json({ success: false, message: "Doctor not available" });
@@ -397,7 +400,7 @@ const bookAppointment = async (req, res) => {
                 <p><strong>Date:</strong> ${slotDate.split("_").join("/")}</p>
                 <p><strong>Time:</strong> ${slotTime}</p>
                 <p><strong>Doctor:</strong> Dr. ${docData.name}</p>
-                <p><strong>Specialty:</strong> ${docData.speciality}</p>
+                <p><strong>Specialty:</strong> ${docData.speciality.name}</p>
               </div>
               <p>Please confirm your attendance by clicking the button below:</p>
               <a href="${confirmationLink}" class="btn">Confirm Appointment</a>
@@ -468,7 +471,14 @@ const listAppointments = async (req, res) => {
   try {
     const { userId } = req.body;
 
-    const appointments = await appointmentModel.find({ userId });
+    // Find appointments for the user and populate the doctorData and doctorData.speciality
+    const appointments = await appointmentModel.find({ userId }).populate({
+      path: "doctorData",
+      populate: {
+        path: "speciality",
+        model: "speciality", // Make sure this matches the name of your Speciality model
+      },
+    });
 
     res.json({ success: true, appointments });
   } catch (error) {
@@ -550,8 +560,15 @@ const paymentStripepay = async (req, res) => {
   try {
     const { userId, appointmentId } = req.body;
 
-    const appointmentData = await appointmentModel.findById(appointmentId);
-
+    const appointmentData = await appointmentModel
+      .findById(appointmentId)
+      .populate({
+        path: "doctorData",
+        populate: {
+          path: "speciality",
+          model: "speciality", // Make sure this matches the name of your Speciality model
+        },
+      });
     if (!appointmentData) {
       return res
         .status(404)
@@ -937,8 +954,11 @@ const docMate = async (req, res) => {
     }
 
     if (foundSpeciality) {
+      const foundSpecialtyDocument = await specialityModel.findOne({
+        name: foundSpeciality,
+      });
       const availableDoctors = await doctorModel
-        .find({ speciality: foundSpeciality, available: true })
+        .find({ speciality: foundSpecialtyDocument._id, available: true })
         .select("_id name");
 
       if (availableDoctors.length === 0) {

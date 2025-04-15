@@ -22,7 +22,7 @@ const TopDoctors = () => {
                                     <p>{item.available ? 'available' : 'disable'}</p>
                                 </div>
                                 <p className="font-medium text-lg">Dr. {item.name}</p>
-                                <p className="text-sm text-gray-600">{item.speciality}</p>
+                                <p className="text-sm text-gray-600">{item.speciality.name}</p>
                             </div>
                         </div>
                     ))

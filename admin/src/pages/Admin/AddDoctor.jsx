@@ -17,7 +17,7 @@ const AddDoctor = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [experience, setExperience] = useState(docInfo ? docInfo.experience : '1 Year')
-    const [speciality, setSpeciality] = useState(docInfo ? docInfo.speciality : 'General physician')
+    const [speciality, setSpeciality] = useState(docInfo ? docInfo.speciality.name : 'General physician')
     const [fees, setFees] = useState(docInfo ? docInfo.fees : '')
     const [about, setAbout] = useState(docInfo ? docInfo.about : '')
     const [address1, setAddress1] = useState(docInfo ? docInfo.address.line1 : '')
@@ -27,12 +27,6 @@ const AddDoctor = () => {
     const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate('')
-
-    useEffect(() => {
-        if (aToken) {
-            getAllSpecialities()
-        }
-    }, [aToken])
 
     const onSubmitHandler = async (event) => {
         event.preventDefault()
@@ -127,6 +121,13 @@ const AddDoctor = () => {
             setLoading(false); // Stop loading
         }
     }
+
+    useEffect(() => {
+        if (aToken) {
+            getAllSpecialities()
+        }
+    }, [aToken])
+
 
     return (
         <form onSubmit={onSubmitHandler} className='m-5 w-full'>

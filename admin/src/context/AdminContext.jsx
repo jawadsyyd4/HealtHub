@@ -115,7 +115,8 @@ const AdminContextProvider = (props) => {
             html: `
                 <div style="font-size: 16px; color: #333;">
                     <p>Are you sure you want to <strong>permanently delete</strong> this speciality?</p>
-                    <p style="margin-top: 10px;">This action <span style="color: #d33;"><strong>cannot be undone</strong></span>.</p>
+                    <p style="margin-top: 10px; color: #d33;"><strong>This action cannot be undone.</strong></p>
+                    <p style="margin-top: 10px;">All doctors related to this speciality will also be <strong>permanently removed</strong>.</p>
                 </div>
             `,
             icon: 'warning',
@@ -156,6 +157,7 @@ const AdminContextProvider = (props) => {
             console.log(error);
         }
     };
+
 
     const getDoctorData = async (docId) => {
         try {

@@ -174,7 +174,7 @@ const Appoitment = () => {
                     </p>
                     <div className="flex items-center gap-2 text-sm mt-1 text-gray-600">
                         <p>
-                            {docInfo.degree} - {docInfo.speciality}
+                            {docInfo.degree} - {docInfo.speciality.name}
                         </p>
                         <button className="py-0.5 px-2 border text-xs rounded-full">
                             {docInfo.experience}
@@ -251,7 +251,7 @@ const Appoitment = () => {
                 {/* ... (rest of your component code) */}
             </div>
             {/* LISTING DOCTORS */}
-            <RelatedDoctors docId={docId} speciality={docInfo.speciality} />
+            <RelatedDoctors docId={docId} speciality={docInfo.speciality.name} />
         </div>
     )
 }

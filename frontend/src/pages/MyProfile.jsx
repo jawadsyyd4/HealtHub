@@ -76,7 +76,7 @@ const MyProfile = () => {
             <div className="">
                 <p className='text-neutral-500 underline mt-3'>CONTACT INFORMATION</p>
                 <div className="grid grid-cols-2 gap-y-2.5 mt-3 text-neutral-700">
-                    <p className='font-medium'>Email id:</p>
+                    <p className='font-medium'>Email:</p>
                     <p className='text-blue-500'>{userData.email}</p>
                     <p className='font-medium'>Phone:</p>
                     {
