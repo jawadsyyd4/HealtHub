@@ -16,6 +16,7 @@ import {
   getDocSlots,
   forgetPassword,
   resetPassword,
+  docMate,
 } from "../controllers/userController.js";
 import authUser from "../middlewares/authUser.js";
 import upload from "../middlewares/multer.js";
@@ -55,5 +56,6 @@ userRoute.get("/user-rate/:doctorId", authUser, checkUserRating);
 userRoute.get("/availble-day/:doctorId", getDocSlots);
 
 userRoute.get("/confirm-appointment/:appointmentId", confirmAppointment);
+userRoute.post("/chat", authUser, docMate);
 
 export default userRoute;

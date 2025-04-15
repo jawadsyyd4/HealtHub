@@ -3,6 +3,7 @@ import { createContext, useState } from "react";
 import axios from "axios"
 import { toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
+import Swal from 'sweetalert2';
 
 export const AdminContext = createContext()
 
@@ -109,19 +110,52 @@ const AdminContextProvider = (props) => {
     }
 
     const deleteHandler = async (specialityId) => {
+        const result = await Swal.fire({
+            title: 'Confirm Deletion',
+            html: `
+                <div style="font-size: 16px; color: #333;">
+                    <p>Are you sure you want to <strong>permanently delete</strong> this speciality?</p>
+                    <p style="margin-top: 10px;">This action <span style="color: #d33;"><strong>cannot be undone</strong></span>.</p>
+                </div>
+            `,
+            icon: 'warning',
+            iconColor: '#d33',
+            background: '#f9f9f9',
+            showCancelButton: true,
+            confirmButtonText: '🗑️ Yes, Delete',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true,
+            focusCancel: true,
+            customClass: {
+                popup: 'swal2-border-radius',
+                confirmButton: 'swal2-confirm-button',
+                cancelButton: 'swal2-cancel-button',
+            },
+            buttonsStyling: false,
+        });
+
+        if (!result.isConfirmed) return;
+
         try {
-            const { data } = await axios.post(backendUrl + "/api/speciality/delete-speciality", { specialityId }, { headers: { aToken } })
+            const { data } = await axios.post(
+                backendUrl + "/api/speciality/delete-speciality",
+                { specialityId },
+                { headers: { aToken } }
+            );
+
             if (data.success) {
-                toast.success(data.message)
-                getAllSpecialities()
+                toast.success(data.message);
+                getAllSpecialities();
             } else {
-                toast.error(data.message)
+                toast.error(data.message);
             }
         } catch (error) {
-            toast.error(error.message)
+            toast.error(error.message);
             console.log(error);
         }
-    }
+    };
 
     const getDoctorData = async (docId) => {
         try {
@@ -137,6 +171,34 @@ const AdminContextProvider = (props) => {
     }
 
     const deleteDoctor = async (docId) => {
+        const result = await Swal.fire({
+            title: 'Confirm Deletion',
+            html: `
+                <div style="font-size: 16px; color: #333;">
+                    <p>Are you sure you want to <strong>permanently delete</strong> this doctor?</p>
+                    <p style="margin-top: 10px;">This action <span style="color: #d33;"><strong>cannot be undone</strong></span>.</p>
+                </div>
+            `,
+            icon: 'warning',
+            iconColor: '#d33',
+            background: '#f9f9f9',
+            showCancelButton: true,
+            confirmButtonText: '🗑️ Yes, Delete',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true,
+            focusCancel: true,
+            customClass: {
+                popup: 'swal2-border-radius',
+                confirmButton: 'swal2-confirm-button',
+                cancelButton: 'swal2-cancel-button',
+            },
+            buttonsStyling: false,
+        });
+
+        if (!result.isConfirmed) return;
+
         try {
             const { data } = await axios.post(
                 `${backendUrl}/api/admin/delete-doctor/${docId}`,
@@ -153,6 +215,7 @@ const AdminContextProvider = (props) => {
             console.error(error);
         }
     };
+
 
     const value = {
         aToken, setAToken,

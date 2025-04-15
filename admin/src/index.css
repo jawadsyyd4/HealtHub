@@ -4,3 +4,26 @@
 ::-webkit-scrollbar {
   @apply hidden;
 }
+
+.swal2-border-radius {
+  border-radius: 10px !important;
+  padding: 1.5rem !important;
+}
+
+.swal2-confirm-button {
+  background-color: #d33 !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px;
+  font-weight: bold;
+  border-radius: 5px;
+}
+
+.swal2-cancel-button {
+  background-color: #6c757d !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px;
+  font-weight: bold;
+  border-radius: 5px;
+}

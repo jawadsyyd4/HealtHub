@@ -1,5 +1,4 @@
-import validator from "validator";
-import bcrypt, { hash } from "bcrypt";
+import bcrypt from "bcrypt";
 import userModel from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import { v2 as cloudinary } from "cloudinary";
@@ -11,6 +10,8 @@ import nodemailer from "nodemailer";
 // import twilio from "twilio";
 import ratingModel from "../models/ratingModel.js";
 import DoctorSchedule from "../models/DoctorScheduleModel.js";
+import specialityModel from "../models/specialityModel.js";
+import axios from "axios";
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -869,6 +870,150 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const docMate = async (req, res) => {
+  try {
+    const { message } = req.body;
+    const specialitiesData = await specialityModel.find();
+    const specialitiesList = specialitiesData.map(
+      (speciality) => speciality.name
+    );
+    const foundSpeciality = specialitiesList.find((speciality) =>
+      message.toLowerCase().includes(speciality.toLowerCase())
+    );
+    const daysOfWeek = [
+      { formal: "Monday", informal: ["monday", "mon"] },
+      { formal: "Tuesday", informal: ["tuesday", "tues", "tue"] },
+      { formal: "Wednesday", informal: ["wednesday", "weds", "wed"] },
+      { formal: "Thursday", informal: ["thursday", "thurs", "thu"] },
+      { formal: "Friday", informal: ["friday", "fri"] },
+      { formal: "Saturday", informal: ["saturday", "sat"] },
+      { formal: "Sunday", informal: ["sunday", "sun"] },
+    ];
+    let foundDayFormal = null;
+    let foundDayInformal = null;
+
+    for (const day of daysOfWeek) {
+      if (day.informal.some((alias) => message.toLowerCase().includes(alias))) {
+        foundDayFormal = day.formal;
+        foundDayInformal = day.informal[0]; // Use the primary informal name for consistency
+        break;
+      }
+    }
+
+    // Enhanced time parsing with regex (as in the previous response)
+    const timeRegex = /(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i;
+    const timeMatch = message.match(timeRegex);
+    let foundTime = null;
+
+    if (timeMatch) {
+      let hours = parseInt(timeMatch[1]);
+      const minutes = parseInt(timeMatch[2]) || 0;
+      const ampm = timeMatch[3];
+
+      if (ampm) {
+        if (ampm.toLowerCase() === "pm" && hours < 12) {
+          hours += 12;
+        } else if (ampm.toLowerCase() === "am" && hours === 12) {
+          hours = 0; // Midnight
+        }
+      }
+
+      const formattedHours = hours.toString().padStart(2, "0");
+      const formattedMinutes = minutes.toString().padStart(2, "0");
+      foundTime = `${formattedHours}:${formattedMinutes}`;
+    }
+
+    let doctors = [];
+    let responseMessage = "";
+    let foundDoctorDetails = null;
+
+    if (!foundDayInformal || !foundTime) {
+      responseMessage = `${!foundDayInformal ? "No day" : ""} ${
+        !foundDayInformal && !foundTime ? "and" : ""
+      } ${
+        !foundTime ? "no time" : ""
+      } specified in your message. Please provide both day and time.`;
+      return res.json({ success: false, message: responseMessage });
+    }
+
+    if (foundSpeciality) {
+      const availableDoctors = await doctorModel
+        .find({ speciality: foundSpeciality, available: true })
+        .select("_id name");
+
+      if (availableDoctors.length === 0) {
+        responseMessage = `No available doctors found for the speciality: ${foundSpeciality}.`;
+      } else {
+        const availabilityPromises = availableDoctors.map(async (doctor) => {
+          try {
+            const availabilityResponse = await axios.get(
+              `http://localhost:4000/api/user/availble-day/${doctor._id}`
+            );
+            console.log(
+              `Availability Response for doctor ${doctor._id}:`,
+              availabilityResponse.data
+            );
+            return { doctor, availability: availabilityResponse.data };
+          } catch (error) {
+            console.error(
+              `Error fetching availability for doctor ${doctor._id}:`,
+              error.message
+            );
+            return {
+              doctor,
+              availability: { success: false, availableTimes: {} },
+            };
+          }
+        });
+
+        const doctorsWithAvailability = await Promise.all(availabilityPromises);
+
+        const availableDoctorSchedule = doctorsWithAvailability.find(
+          ({ availability }) => {
+            if (
+              availability &&
+              availability.success &&
+              availability.availableTimes
+            ) {
+              const dayAvailability =
+                availability.availableTimes[foundDayFormal];
+              return (
+                dayAvailability &&
+                dayAvailability.start <= foundTime &&
+                dayAvailability.end >= foundTime
+              );
+            }
+            return false;
+          }
+        );
+
+        if (availableDoctorSchedule) {
+          foundDoctorDetails = availableDoctorSchedule.doctor;
+          const dayAvailability =
+            availableDoctorSchedule.availability.availableTimes[foundDayFormal];
+          responseMessage = `Dr. ${foundDoctorDetails.name} is available on ${foundDayFormal} from ${dayAvailability.start} to ${dayAvailability.end}.`;
+          doctors = [foundDoctorDetails];
+        } else {
+          responseMessage = `No available doctors found for the speciality: ${foundSpeciality} on ${foundDayFormal} at ${foundTime}.`;
+          doctors = [];
+        }
+      }
+    } else {
+      responseMessage = "No matching speciality found in your message.";
+      doctors = [];
+    }
+
+    return res.json({
+      success: !!foundDoctorDetails,
+      message: responseMessage,
+      doctor: foundDoctorDetails || null,
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
 export {
   registerUser,
   loginUser,
@@ -886,4 +1031,5 @@ export {
   getDocSlots,
   forgetPassword,
   resetPassword,
+  docMate,
 };

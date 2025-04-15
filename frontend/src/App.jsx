@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-import React from 'react'
+import React, { useContext } from 'react'
 import Home from './pages/Home'
 import Doctors from './pages/Doctors'
 import Login from './pages/Login'
@@ -14,10 +14,13 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ForgotPassword from './pages/ForgetPassword';  // Adjust path as needed
 import ResetPassword from './pages/ResetPassword'
+import DocMate from './pages/DocMate'
+import FixedButton from './components/FixedButton'
+import { AppContext } from './context/AppContext'
 
 const App = () => {
   const location = useLocation(); // Hook to get current location
-
+  const { token } = useContext(AppContext)
   // Corrected condition to check if we're on the login, forgot-password, or reset-password pages
   const isLoginPage = location.pathname === '/login' || location.pathname === '/forgot-password' || location.pathname === '/reset-password';
 
@@ -40,8 +43,9 @@ const App = () => {
         <Route path='/appointment/:docId' element={<Appointment />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/doc-mate" element={<DocMate />} />
       </Routes>
-
+      {token && <FixedButton />}
       {/* Only render Footer if we're not on the login, forgot-password, or reset-password pages */}
       {!isLoginPage && <Footer />}
     </div>

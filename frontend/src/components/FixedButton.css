@@ -1,0 +1,22 @@
+/* src/components/FixedButton.css */
+.fixed-button {
+  position: fixed;
+  bottom: 20px; /* Adjust this value to move the button higher or lower */
+  right: 20px; /* Adjust this value to move the button left or right */
+  background-color: #c0eb6a; /* Updated color */
+  color: white;
+  text-decoration: none; /* Removes underline from the link */
+  border: none;
+  border-radius: 50%; /* Ensures the button is circular */
+  padding: 15px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Simple shadow */
+  z-index: 1000; /* Ensures it stays on top of other elements */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+}
+
+.fixed-button:hover {
+  background-color: #a0d15c; /* Darker shade for hover effect */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Slightly stronger shadow on hover */
+}
