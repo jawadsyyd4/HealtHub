@@ -410,7 +410,6 @@ const updateDoctorSchedule = async (req, res) => {
 
 const sendEmailNotification = async (
   userEmail,
-  doctorSpeciality,
   patientName,
   appointmentDetails
 ) => {
@@ -478,7 +477,7 @@ const sendEmailNotification = async (
             <p>Dear ${patientName},</p>
             <p>We regret to inform you that your appointment with Dr. ${appointmentDetails.doctorName} has been cancelled due to the doctor's unavailability on ${appointmentDetails.slotDate} at ${appointmentDetails.slotTime}.</p>
             <p>We sincerely apologize for the inconvenience caused. To help you reschedule, please click the link below to explore other doctors in the same specialty and book a new appointment:</p>
-            <p><a href="http://localhost:5173/doctors/${doctorSpeciality}">View Doctors and Book an Appointment</a></p>
+            <p><a href="http://localhost:5173/doctors">View Doctors and Book an Appointment</a></p>
     
             <!-- Footer -->
             <footer>
@@ -547,7 +546,6 @@ const changeAvailability = async (req, res) => {
         // Send an email notification to the patient with additional details
         await sendEmailNotification(
           appointment.userData.email,
-          docData.speciality,
           appointment.userData.name, // Patient's name
           {
             doctorName: docData.name, // Doctor's name

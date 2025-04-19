@@ -2,6 +2,7 @@
 import React, { useContext, useEffect } from 'react'
 import { AdminContext } from '../../context/AdminContext'
 import { assets } from '../../assets/assets'
+import { Link } from 'react-router-dom' // <-- Import Link
 
 const DoctorsList = () => {
 
@@ -15,7 +16,16 @@ const DoctorsList = () => {
 
     return (
         <div className='m-5 max-h-[90vh] overflow-y-scroll'>
-            <h1 className='text-lg font-medium'>All Doctors</h1>
+            <div className='flex justify-between items-center'>
+                <h1 className='text-lg font-medium'>All Doctors</h1>
+                <Link
+                    to="http://localhost:5174/add-doctor"
+                    className='bg-[#C0EB6A] text-white font-medium px-4 py-2 rounded-md hover:bg-[#b3df5f] transition'
+                >
+                    Add Doctor
+                </Link>
+            </div>
+
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 pt-5 gap-y-6">
                 {
                     doctors.map((item, index) => (
@@ -43,7 +53,6 @@ const DoctorsList = () => {
             </div>
         </div>
     )
-
 }
 
 export default DoctorsList

@@ -4,29 +4,32 @@ import { v2 as cloudinary } from "cloudinary";
 
 const addSpeciality = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, description } = req.body; // Destructure description from the body
     const imageFile = req.file;
 
-    if (!name) {
+    // Check if name and description are provided
+    if (!name || !description) {
       return res.json({ success: false, message: "Missing details" });
     }
 
-    // upload image to cloudinary
+    // Upload image to cloudinary
     const imageUpload = cloudinary.uploader.upload(imageFile.path, {
       resource_type: "image",
     });
 
     const imageUrl = (await imageUpload).secure_url;
 
+    // Create a new speciality object with name, image, and description
     const specialityData = {
       name,
       image: imageUrl,
+      description, // Include description
     };
 
     const newSpeciality = new specialityModel(specialityData);
     await newSpeciality.save();
 
-    res.json({ success: true, message: "Speciaity Added." });
+    res.json({ success: true, message: "Specialty Added." });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ success: false, message: error.message });
@@ -112,7 +115,7 @@ const deleteSpeciality = async (req, res) => {
 const updateSpeciality = async (req, res) => {
   try {
     const { specialityId } = req.query;
-    const { name } = req.body; // Get the updated name from the request body
+    const { name, description } = req.body; // Get the updated name and description from the request body
     const imageFile = req.file; // Get the uploaded image file from the request, if present
 
     // Find the speciality by ID
@@ -135,6 +138,7 @@ const updateSpeciality = async (req, res) => {
 
     // Update the speciality fields
     speciality.name = name || speciality.name; // Update name if provided, else keep the existing name
+    speciality.description = description || speciality.description; // Update description if provided, else keep the existing description
     speciality.image = imageUrl; // Update image URL (even if not uploaded, it retains the old image)
 
     // Save the updated speciality

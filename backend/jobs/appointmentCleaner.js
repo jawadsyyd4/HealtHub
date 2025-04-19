@@ -138,12 +138,12 @@ const sendCancellationEmail = async (appt) => {
             <div class="appointment-details">
               <p><strong>Date:</strong> ${appt.slotDate.replace(/_/g, "/")}</p>
               <p><strong>Time:</strong> ${appt.slotTime}</p>
-              <p><strong>Doctor:</strong> Dr. ${appt.doctorData.name}</p>
+              <p><strong>Doctor:</strong> ${appt.doctorData.name}</p>
             </div>
-            <p>You can book a new appointment anytime from your dashboard.</p>
+            <p>You can book a new appointment anytime from the <a href="http://localhost:5173/doctors"></a>.</p>
             <footer>
               <p>If you have any questions, please contact our support team.</p>
-              <p>Thank you,<br/>The HealthCare Team</p>
+              <p>Thank you,<br/>The HealthHub Team</p>
             </footer>
           </div>
         </body>

@@ -23,6 +23,7 @@ const AppContextProvider = (props) => {
             const { data } = await axios.get(backendUrl + "/api/speciality/specialities")
             if (data.success) {
                 setSpecialities(data.specialities)
+                console.log(specialities)
             }
             else {
                 toast.error(data.message)

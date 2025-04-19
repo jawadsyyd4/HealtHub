@@ -399,7 +399,7 @@ const bookAppointment = async (req, res) => {
               <div class="appointment-details">
                 <p><strong>Date:</strong> ${slotDate.split("_").join("/")}</p>
                 <p><strong>Time:</strong> ${slotTime}</p>
-                <p><strong>Doctor:</strong> Dr. ${docData.name}</p>
+                <p><strong>Doctor:</strong> ${docData.name}</p>
                 <p><strong>Specialty:</strong> ${docData.speciality.name}</p>
               </div>
               <p>Please confirm your attendance by clicking the button below:</p>
@@ -969,10 +969,6 @@ const docMate = async (req, res) => {
             const availabilityResponse = await axios.get(
               `http://localhost:4000/api/user/availble-day/${doctor._id}`
             );
-            console.log(
-              `Availability Response for doctor ${doctor._id}:`,
-              availabilityResponse.data
-            );
             return { doctor, availability: availabilityResponse.data };
           } catch (error) {
             console.error(
@@ -988,7 +984,7 @@ const docMate = async (req, res) => {
 
         const doctorsWithAvailability = await Promise.all(availabilityPromises);
 
-        const availableDoctorSchedule = doctorsWithAvailability.find(
+        const matchingDoctors = doctorsWithAvailability.filter(
           ({ availability }) => {
             if (
               availability &&
@@ -1007,12 +1003,35 @@ const docMate = async (req, res) => {
           }
         );
 
-        if (availableDoctorSchedule) {
-          foundDoctorDetails = availableDoctorSchedule.doctor;
-          const dayAvailability =
-            availableDoctorSchedule.availability.availableTimes[foundDayFormal];
-          responseMessage = `Dr. ${foundDoctorDetails.name} is available on ${foundDayFormal} from ${dayAvailability.start} to ${dayAvailability.end}.`;
-          doctors = [foundDoctorDetails];
+        if (matchingDoctors.length > 0) {
+          const doctorRatingsPromises = matchingDoctors.map(
+            async ({ doctor }) => {
+              try {
+                const { data } = await axios.get(
+                  `http://localhost:4000/api/doctor/rating/${doctor._id}`
+                );
+
+                return {
+                  _id: doctor._id,
+                  name: doctor.name,
+                  avgRate: data.averageRating || 0,
+                };
+              } catch (err) {
+                console.error(
+                  `Failed to fetch rating for doctor ${doctor._id}:`,
+                  err.message
+                );
+                return {
+                  _id: doctor._id,
+                  name: doctor.name,
+                  avgRate: 0, // fallback
+                };
+              }
+            }
+          );
+
+          doctors = await Promise.all(doctorRatingsPromises);
+          responseMessage = `Found ${doctors.length} available doctor(s) for ${foundSpeciality} on ${foundDayFormal} at ${foundTime}.`;
         } else {
           responseMessage = `No available doctors found for the speciality: ${foundSpeciality} on ${foundDayFormal} at ${foundTime}.`;
           doctors = [];
@@ -1024,9 +1043,9 @@ const docMate = async (req, res) => {
     }
 
     return res.json({
-      success: !!foundDoctorDetails,
+      success: doctors.length > 0,
       message: responseMessage,
-      doctor: foundDoctorDetails || null,
+      doctors, // return all matching doctors
     });
   } catch (error) {
     console.log(error);

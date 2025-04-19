@@ -23,17 +23,17 @@ const Sidebar = () => {
                             <img src={assets.appointment_icon} />
                             <p className='hidden lg:block'>Appointments</p>
                         </NavLink>
-                        <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/add-doctor'}>
+                        {/* <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/add-doctor'}>
                             <img src={assets.add_icon} />
                             <p className='hidden lg:block'>Add Doctor</p>
-                        </NavLink>
+                        </NavLink> */}
                         <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-list'}>
                             <img src={assets.people_icon} />
-                            <p className='hidden lg:block'>Doctors List</p>
+                            <p className='hidden lg:block'>Manage Doctors</p>
                         </NavLink>
                         <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/add-speciality'}>
                             <img className='w-8' src={assets.speciality_icon} />
-                            <p className='hidden lg:block'>Speciality</p>
+                            <p className='hidden lg:block'>Manage Specialities</p>
                         </NavLink>
                     </ul>
                     : <ul>

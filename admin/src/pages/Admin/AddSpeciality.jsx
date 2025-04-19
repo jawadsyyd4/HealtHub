@@ -17,6 +17,8 @@ const AddSpeciality = () => {
     const [image, setImage] = useState(false)
     const [isEdit, setIsEdit] = useState(false)
     const [currentEditId, setCurrentEditId] = useState(false)
+    const [description, setDescription] = useState('');
+
 
     const [loading, setLoading] = useState(false);
 
@@ -25,65 +27,65 @@ const AddSpeciality = () => {
         setLoading(true); // Start loading
 
         try {
-
             if (!specialityImg) {
-                return toast.error("Image Not Selected")
+                return toast.error("Image Not Selected");
             }
 
-            const formData = new FormData()
+            const formData = new FormData();
+            formData.append('image', specialityImg);
+            formData.append('name', name);
+            formData.append('description', description); // Add description
 
-            formData.append('image', specialityImg)
-            formData.append('name', name)
-
-            const { data } = await axios.post(backendUrl + "/api/speciality/add-speciality", formData, { headers: { aToken } })
+            const { data } = await axios.post(backendUrl + "/api/speciality/add-speciality", formData, { headers: { aToken } });
 
             if (data.success) {
-                toast.success(data.message)
-                setSpecialityImg(false)
-                setName('')
-                setOpen(false)
-                getAllSpecialities()
-            } else { toast.error(data.message) }
+                toast.success(data.message);
+                setSpecialityImg(false);
+                setName('');
+                setDescription(''); // Reset description after submission
+                setOpen(false);
+                getAllSpecialities();
+            } else {
+                toast.error(data.message);
+            }
 
         } catch (error) {
-            toast.error(error.message)
+            toast.error(error.message);
             console.log(error);
         } finally {
             setLoading(false); // Stop loading
         }
+    };
 
-    }
 
-    const editHandler = async (specialityId, specialityName) => {
+    const editHandler = async (specialityId, specialityName, description) => {
         setLoading(true); // Start loading
 
         try {
             const formData = new FormData();
-
-            // Append name to formData
             formData.append('name', specialityName);
+            formData.append('description', description); // Add description if it's updated
 
-            // Append image if it's selected
             if (image) {
-                formData.append('image', image);
+                formData.append('image', image); // Include image if selected
             }
 
             const { data } = await axios.post(
-                backendUrl + '/api/speciality/update-speciality', // The URL endpoint
-                formData, // The actual data (payload)
+                backendUrl + '/api/speciality/update-speciality',
+                formData,
                 {
-                    headers: { aToken }, // Optional headers (e.g., for authentication)
-                    params: { specialityId }, // Query parameters (e.g., ID for the speciality)
+                    headers: { aToken },
+                    params: { specialityId },
                 }
             );
 
-            // Handle the response
             if (data.success) {
                 toast.success(data.message);
                 getAllSpecialities();
                 setIsEdit(false);
                 setImage(false);
-                setName('')
+                setName('');
+                setDescription(''); // Reset description after update
             } else {
                 toast.error(data.message);
             }
@@ -94,6 +96,7 @@ const AddSpeciality = () => {
             setLoading(false); // Stop loading
         }
     };
+
 
 
     const [specialityData, setSpecialityData] = useState(false)
@@ -131,10 +134,12 @@ const AddSpeciality = () => {
                 {/* Button to open the dialog outside the form */}
                 <button
                     type="button"
-                    onClick={() => setOpen(true)} // Open dialog on click
-                    className="border-[#C0EB6A] border-2 text-[#C0EB6A] px-8 py-3  rounded-lg text-lg font-semibold hover:bg-[#C0EB6A] hover:text-white transition-all cursor-pointer shadow-md">
+                    onClick={() => setOpen(true)}
+                    className="top-6 right-6 bg-[#C0EB6A] hover:bg-[#a8d84f] text-white px-6 py-2 rounded-lg text-base font-semibold shadow-lg transition-all duration-300 ease-in-out hover:scale-105 cursor-pointer"
+                >
                     Add Speciality
                 </button>
+
 
                 {/* Dialog component */}
                 <Dialog open={open} onClose={() => setOpen(false)} className="relative z-10">
@@ -189,6 +194,17 @@ const AddSpeciality = () => {
                                                                         required
                                                                     />
                                                                 </div>
+                                                                <div className="flex-1 flex flex-col gap-1">
+                                                                    <p className="font-medium">Speciality Description</p>
+                                                                    <textarea
+                                                                        onChange={(e) => setDescription(e.target.value)}
+                                                                        value={description}
+                                                                        className="border rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-blue-400 transition-all"
+                                                                        placeholder="Enter speciality description"
+                                                                        required
+                                                                    />
+                                                                </div>
+
                                                             </div>
                                                         </div>
                                                     </div>
@@ -225,15 +241,16 @@ const AddSpeciality = () => {
             <div className="w-full max-w-7xl mx-auto my-10">
                 <p className="mb-6 text-3xl font-semibold text-gray-800">All Specialties</p>
                 <div className="max-w-screen bg-white border rounded-lg shadow-lg text-sm max-h-[80vh] overflow-y-scroll min-h-[60vh]">
-                    <div className="hidden sm:grid grid-cols-[2fr_5fr_5fr_2fr] grid-flow-col py-4 px-6 border-b bg-gray-100 text-gray-700 font-semibold">
-                        <p>#</p>
-                        <p>Name</p>
-                        <p>Image</p>
-                        <p>Actions</p>
+                    <div className="hidden sm:grid grid-cols-[0.5fr_2fr_7fr_2fr_2fr] grid-flow-col py-4 px-6 border-b bg-gray-100 text-gray-700 font-semibold">
+                        <p className='m-auto'>#</p>
+                        <p className='m-auto'>Name</p>
+                        <p className='m-auto'>Description</p>
+                        <p className='m-auto'>Image</p>
+                        <p className='m-auto'>Actions</p>
                     </div>
                     {specialities.map((item, index) => (
-                        <div key={index} className="flex flex-wrap sm:grid sm:grid-cols-[2fr_5fr_5fr_2fr] justify-between items-center py-4 px-6 border-b hover:bg-gray-50 transition-colors duration-300 ease-in-out">
-                            <p className="hidden sm:block text-gray-600">{index + 1}</p>
+                        <div key={index} className="flex flex-wrap sm:grid sm:grid-cols-[0.5fr_2fr_7fr_2fr_2fr] justify-between items-center py-4 px-6 border-b hover:bg-gray-50 transition-colors duration-300 ease-in-out">
+                            <p className="hidden sm:block text-gray-600 m-auto">{index + 1}</p>
 
                             <div className="flex items-center gap-3">
                                 {
@@ -244,47 +261,62 @@ const AddSpeciality = () => {
                                             onChange={(e) => { setSpecialityData({ ...specialityData, name: e.target.value }); setName(specialityData.name) }}
                                             className="text-gray-800 font-medium bg-gray-200 p-1"
                                         />
-                                        : <p className="text-gray-800 font-medium">{item.name}</p>
+                                        : <p className="text-gray-800 font-medium m-auto">{item.name}</p>
                                 }
-                            </div>
 
+
+                            </div>
                             <div className="flex items-center gap-3">
                                 {
                                     isEdit && currentEditId === item._id
-                                        ? <label htmlFor="image">
-                                            <div className="inline-block relative cursor-pointer">
-                                                {/* Displaying the image or placeholder for file upload */}
+                                        ? <textarea
+                                            value={specialityData.description || ''}
+                                            onChange={(e) => { setSpecialityData({ ...specialityData, description: e.target.value }); setDescription(specialityData.description) }}
+                                            className="text-gray-800 font-medium bg-gray-200 p-1 w-full"
+                                        />
+                                        : <p className="text-gray-800 font-medium m-auto">{item.description}</p>
+                                }
+                            </div>
+
+                            <div className="flex items-center justify-center">
+                                {
+                                    isEdit && currentEditId === item._id ? (
+                                        <label htmlFor="image" className="relative group cursor-pointer">
+                                            {/* Image Preview */}
+                                            <img
+                                                className="w-24 h-24 rounded-full object-cover shadow-md border-2 border-gray-300 group-hover:opacity-80 transition-opacity"
+                                                src={image ? URL.createObjectURL(image) : specialityData.image}
+                                                alt="Speciality Preview"
+                                            />
+                                            {/* Upload Icon on Hover */}
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <img
-                                                    className='w-36 h-36 rounded-full object-cover opacity-75 shadow-md'
-                                                    src={image ? URL.createObjectURL(image) : specialityData.image}
-                                                    alt=""
-                                                />
-                                                {/* Upload Icon inside the image container */}
-                                                <img
-                                                    className='w-10 h-10 absolute bottom-12 right-12 bg-gray-500 rounded-full text-white flex items-center justify-center'
-                                                    src={image ? '' : assets.upload_icon}
-                                                    alt=""
+                                                    src={assets.upload_icon}
+                                                    className="w-8 h-8"
+                                                    alt="Upload Icon"
                                                 />
                                             </div>
+
                                             {/* Hidden file input */}
                                             <input
-                                                onChange={(e) => setImage(e.target.files[0])}
                                                 type="file"
                                                 id="image"
                                                 hidden
-                                                className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                                                onChange={(e) => setImage(e.target.files[0])}
                                             />
                                         </label>
-                                        : <img
-                                            className="w-12 h-12 rounded-full bg-gray-200 shadow-md"
+                                    ) : (
+                                        <img
+                                            className="w-14 h-14 rounded-full object-cover shadow-md border border-gray-300 m-auto"
                                             src={item.image}
                                             alt={item.name}
                                         />
+                                    )
                                 }
-
                             </div>
 
-                            <div className="flex items-center justify-end gap-4">
+
+                            <div className="flex m-auto gap-4">
                                 {loading && (
                                     <LoadingComponent
                                         icon={<FaStethoscope className="text-[#C0EB6A] text-4xl mb-4 animate-bounce" />
@@ -295,7 +327,7 @@ const AddSpeciality = () => {
                                 {
                                     isEdit && currentEditId === item._id
                                         ?
-                                        <img onClick={() => editHandler(item._id, specialityData.name)} className="w-8 cursor-pointer" src={assets.save_icon} alt="" />
+                                        <img onClick={() => editHandler(item._id, specialityData.name, specialityData.description)} className="w-8 cursor-pointer" src={assets.save_icon} alt="" />
                                         : <>
                                             <img className='w-8 cursor-pointer' onClick={() => { setIsEdit(true); getSpecialityData(item._id) }} src={assets.edit_icon} alt="edit" />
                                             <img className='w-8 cursor-pointer' onClick={() => deleteHandler(item._id)} src={assets.delete_icon} alt="delete" />
