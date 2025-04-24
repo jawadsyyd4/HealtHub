@@ -27,10 +27,10 @@ const Navbar = () => {
                     <li className='py-1'>ALL DOCTORS</li>
                     <hr className='border-none outline-none h-0.5 bg-[#C0EB6A] w-3/5 m-auto hidden' />
                 </NavLink>
-                {/* <NavLink to='/doc-mate'>
-                    <li className='py-1'>DOCMATE</li>
+                {token && <NavLink to='/doc-mate'>
+                    <li className='py-1 text-[#C0EB6A]'>DOCMATE</li>
                     <hr className='border-none outline-none h-0.5 bg-[#C0EB6A] w-3/5 m-auto hidden' />
-                </NavLink> */}
+                </NavLink>}
                 <NavLink to='/about'>
                     <li className='py-1'>ABOUT</li>
                     <hr className='border-none outline-none h-0.5 bg-[#C0EB6A] w-3/5 m-auto hidden' />
@@ -66,7 +66,7 @@ const Navbar = () => {
                     <ul className='flex flex-col items-center gap-2 mt-5 px-5 text-lg font-medium'>
                         <NavLink to='/' onClick={() => setShowMenu(false)} ><p className='px-4 py-2 rounded inline-block'>HOME</p></NavLink>
                         <NavLink to='/doctors' onClick={() => setShowMenu(false)} ><p className='px-4 py-2 rounded inline-block'>ALL DOCTORS</p></NavLink>
-                        {/* <NavLink to='/doc-mate' onClick={() => setShowMenu(false)} ><p className='px-4 py-2 rounded inline-block'>DOCMATE</p></NavLink> */}
+                        {token && <NavLink to='/doc-mate' onClick={() => setShowMenu(false)} ><p className='px-4 py-2 rounded inline-block text-[#C0EB6A]'>DOCMATE</p></NavLink>}
                         <NavLink to='/about' onClick={() => setShowMenu(false)} ><p className='px-4 py-2 rounded inline-block'>ABOUT</p></NavLink>
                         <NavLink to='/contact' onClick={() => setShowMenu(false)} ><p className='px-4 py-2 rounded inline-block'>CONTACT</p></NavLink>
                     </ul>

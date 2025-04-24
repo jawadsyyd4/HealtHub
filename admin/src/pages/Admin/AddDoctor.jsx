@@ -331,14 +331,23 @@ const AddDoctor = () => {
                 )}
 
                 {docInfo ? (
-                    <button
-                        onClick={() => { updateDocInfo(docInfo.name, docInfo.degree, speciality, docInfo.about, docInfo.fees, address1, address2, docInfo.experience) }}
-                        type="button"
-                        className="bg-[#C0EB6A] px-10 py-3 mt-4 text-white rounded-full cursor-pointer"
-                        disabled={loading}
-                    >
-                        Update doctor information
-                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => { updateDocInfo(docInfo.name, docInfo.degree, speciality, docInfo.about, docInfo.fees, address1, address2, docInfo.experience) }}
+                            type="button"
+                            className="bg-[#C0EB6A] px-10 py-3 mt-4 text-white rounded-full cursor-pointer"
+                            disabled={loading}
+                        >
+                            Update doctor information
+                        </button>
+                        <button
+                            onClick={() => { setDocInfo(false); setName(''); setEmail(''); setPassword(''); setAddress1(''); setAddress2(''); setDegree(''); setExperience(false); setFees(''); setAbout('') }}
+                            type="button"
+                            className="bg-red-500 px-10 py-3 mt-4 text-white rounded-full cursor-pointer hover:scale-105"
+                        >
+                            Cancel
+                        </button>
+                    </div>
                 ) : (
                     <button
                         type="submit"

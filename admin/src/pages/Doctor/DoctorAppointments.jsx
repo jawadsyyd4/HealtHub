@@ -35,13 +35,13 @@ const DoctorAppointments = () => {
                         <div className="flex flex-wrap justify-between max-sm:gap-5 max-sm:text-base sm:grid grid-cols-[0.5fr_2fr_1fr_0.8fr_2fr_1fr_1fr_1.2fr] gap-1 items-center text-gray-500 py-3 px-6 border-b hover:bg-gray-50" key={index}>
                             <p className='max-sm:hidden m-auto'>{index + 1}</p>
                             <div className="flex items-center gap-2 m-auto">
-                                <img className='w-8 rounded-full' src={item.userData.image} alt="" />
-                                <p>{item.userData.name}</p>
+                                <img className='w-8 rounded-full' src={item.userData ? item.userData.image : assets.upload_area} alt="" />
+                                <p>{item.userData ? item.userData.name : item.guestPatientId.name}</p>
                             </div>
                             <div className="m-auto">
                                 <p className='text-xs inline border border-[#C0EB6A] px-2 rounded-full'>{item.payment ? 'ONLINE' : 'CASH'}</p>
                             </div>
-                            <p className='max-sm:hidden m-auto'>{calculateAge(item.userData.dob)}</p>
+                            <p className='max-sm:hidden m-auto'>{item.userData ? calculateAge(item.userData.dob) : calculateAge(item.guestPatientId.dateOfBirth)}</p>
                             <p className='m-auto'>{slotDateFormat(item.slotDate)}, {item.slotTime}</p>
                             <div className=''><p className={`w-2 h-2 m-auto ${item.confirmed ? 'bg-green-500' : 'bg-red-400'} rounded-full`}></p></div>
                             <p className='max-sm:hidden m-auto'>{currency}{item.amount}</p>

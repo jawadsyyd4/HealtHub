@@ -8,13 +8,14 @@ import { AppContext } from '../../context/AppContext'
 
 const Dashboard = () => {
 
-    const { aToken, getDashData, dashData, cancelAppointment } = useContext(AdminContext)
+    const { aToken, getDashData, dashData, cancelAppointment, setDocInfo } = useContext(AdminContext)
     const { slotDateFormat } = useContext(AppContext)
 
     useEffect(() => {
         if (aToken) {
             getDashData()
         }
+        setDocInfo(false)
     }, [aToken])
 
     return dashData && (

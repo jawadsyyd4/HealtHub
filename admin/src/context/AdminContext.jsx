@@ -55,17 +55,21 @@ const AdminContextProvider = (props) => {
 
     const getAllAppointments = async () => {
         try {
-            const { data } = await axios.get(backendUrl + "/api/admin/appointments", { headers: { aToken } })
+            // Fetch appointments from the backend
+            const { data } = await axios.get(backendUrl + "/api/admin/appointments", {
+                headers: { aToken },
+            });
 
             if (data.success) {
-                setAppointments(data.appointments)
+                // No need to fetch guest data separately, since it's populated in the backend
+                setAppointments(data.appointments);
             } else {
-                toast.error(data.message)
+                toast.error(data.message);
             }
         } catch (error) {
-            toast.error(error.message)
+            toast.error(error.message);
         }
-    }
+    };
 
     const cancelAppointment = async (appointmentId) => {
         try {

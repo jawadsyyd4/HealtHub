@@ -154,6 +154,32 @@ const Appoitment = () => {
     }
 
     useEffect(() => {
+        const storedData = localStorage.getItem('appointmentData');
+        if (storedData && docSlots) {
+            const { time } = JSON.parse(storedData);
+
+            // Step 1: Get the first day key and its time slots
+            const firstDayKey = Object.keys(docSlots)[0];
+            const timeSlots = docSlots[firstDayKey];
+
+            if (timeSlots && Array.isArray(timeSlots)) {
+                // Step 2: Set slotIndex to the first day (index 0)
+                setSlotIndex(0);
+
+                // Step 3: Find the index of the time in the time slots (match by start time)
+                const timeIdx = timeSlots.findIndex(slot => slot.start === time);
+
+                if (timeIdx !== -1) {
+                    setSlotIndex2(timeIdx);
+                }
+            }
+
+            // Optionally clear after use
+            localStorage.removeItem('appointmentData');
+        }
+    }, [docSlots]);
+
+    useEffect(() => {
         fetchDocInfo();
         getDocSlots();
         getDoctorAVGRating(docId)

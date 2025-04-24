@@ -16,6 +16,9 @@ import DoctorAppointments from './pages/Doctor/DoctorAppointments.jsx';
 import DoctorProfile from './pages/Doctor/DoctorProfile.jsx';
 import AddSpeciality from './pages/Admin/AddSpeciality.jsx';
 import DoctorScheduleForm from './pages/Doctor/DoctorScheduleForm.jsx';
+import GuestPatientTable from './pages/Admin/GuestPatientTable.jsx';
+import GuestPatientForm from './pages/Admin/GuestPatientFormAdd.jsx';
+import AppointmentForm from './pages/Admin/AppointmentForm.jsx';
 
 
 const App = () => {
@@ -39,6 +42,11 @@ const App = () => {
           <Route path='/add-doctor' element={<AddDoctor />} />
           <Route path='/doctor-list' element={<DoctorsList />} />
           <Route path='/add-speciality' element={<AddSpeciality />} />
+          <Route path='/guest-patients' element={<GuestPatientTable />} />
+          <Route path="/add-patient" element={<GuestPatientForm />} />
+          <Route path="/add-patient/:patientId" element={<GuestPatientForm />} />
+          <Route path="/patients/:patientId/book-appointment" element={<AppointmentForm />} />
+
 
           {/* DOCTOR ROUTES */}
           <Route path='/doctor-dashboard' element={<DoctorDashboard />} />

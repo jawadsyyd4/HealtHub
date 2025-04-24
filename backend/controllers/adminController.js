@@ -9,6 +9,7 @@ import userModel from "../models/userModel.js";
 import DoctorSchedule from "../models/DoctorScheduleModel.js";
 import ratingModel from "../models/ratingModel.js";
 import specialityModel from "../models/specialityModel.js";
+import guestPatientModel from "../models/guestPatientModel.js";
 
 const addDoctor = async (req, res) => {
   try {
@@ -124,10 +125,14 @@ const allDoctors = async (req, res) => {
   }
 };
 
-// get all appointment list
 const appointmentAdmin = async (req, res) => {
   try {
-    const appointments = await appointmentModel.find({});
+    // Fetch all appointments and populate guestPatientId with guest data
+    const appointments = await appointmentModel
+      .find({})
+      .populate("guestPatientId", "name dateOfBirth"); // Adjust the fields you want to populate from the guestPatientModel
+
+    // Return the appointments with populated guest data
     res.json({ success: true, appointments });
   } catch (error) {
     console.log(error);
@@ -336,6 +341,302 @@ const deleteDoctor = async (req, res) => {
   }
 };
 
+// Create a new guest patient
+const createGuestPatient = async (req, res) => {
+  try {
+    const { name, phone, email, gender, dateOfBirth, notes } = req.body;
+
+    if (!name || !phone) {
+      return res.status(400).json({ message: "Name and phone are required." });
+    }
+
+    const newPatient = new guestPatientModel({
+      name,
+      phone,
+      email,
+      gender,
+      dateOfBirth,
+      notes,
+    });
+
+    const savedPatient = await newPatient.save();
+    res.status(201).json(savedPatient);
+  } catch (error) {
+    console.error("Error creating guest patient:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+// Update guest patient info
+const updateGuestPatient = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, phone, email, gender, dateOfBirth, notes } = req.body;
+
+    const updatedPatient = await guestPatientModel.findByIdAndUpdate(
+      id,
+      { name, phone, email, gender, dateOfBirth, notes },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedPatient) {
+      return res.status(404).json({ message: "Guest patient not found." });
+    }
+
+    res.status(200).json(updatedPatient);
+  } catch (error) {
+    console.error("Error updating guest patient:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+const getAllGuestPatients = async (req, res) => {
+  try {
+    const patients = await guestPatientModel.find().sort({ createdAt: -1 });
+    res.status(200).json(patients);
+  } catch (error) {
+    console.error("Error fetching guest patients:", error);
+    res.status(500).json({ message: "Failed to fetch guest patients" });
+  }
+};
+
+const getGuestPatientById = async (req, res) => {
+  const { patientId } = req.params; // Extract patientId from request parameters
+
+  try {
+    // Find the patient by ID in the database
+    const patient = await guestPatientModel.findById(patientId);
+
+    if (!patient) {
+      // If no patient is found, send a 404 error
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    // If the patient is found, send the patient data
+    res.status(200).json(patient);
+  } catch (error) {
+    // Catch any errors that occur while querying the database
+    console.error("Error fetching patient:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const getDoctorsBySpecialty = async (req, res) => {
+  try {
+    const { specialtyName } = req.body;
+
+    if (!specialtyName) {
+      return res.status(400).json({ message: "Specialty name is required." });
+    }
+
+    // Find the specialty by name
+    const specialty = await specialityModel.findOne({ name: specialtyName });
+
+    if (!specialty) {
+      return res.status(404).json({ message: "Specialty not found." });
+    }
+
+    // Find all available doctors with the matched specialty ID
+    const doctors = await doctorModel
+      .find({ speciality: specialty._id, available: true })
+      .select("-password");
+
+    return res.status(200).json({ doctors });
+  } catch (error) {
+    console.error("Error in getDoctorsBySpecialty:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getDoctorAvailability = async (req, res) => {
+  try {
+    const { doctorId } = req.body;
+
+    if (!doctorId) {
+      return res.status(400).json({ message: "Doctor ID is required." });
+    }
+
+    const schedule = await DoctorSchedule.findOne({ doctor: doctorId });
+
+    if (!schedule) {
+      return res
+        .status(404)
+        .json({ message: "Schedule not found for this doctor." });
+    }
+
+    return res.status(200).json({ availableDays: schedule.availableDays });
+  } catch (error) {
+    console.error("Error in getDoctorAvailability:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getDayTimeRange = async (req, res) => {
+  try {
+    const { doctorId, day } = req.body;
+
+    if (!doctorId || !day) {
+      return res
+        .status(400)
+        .json({ message: "Doctor ID and day are required." });
+    }
+
+    const schedule = await DoctorSchedule.findOne({ doctor: doctorId });
+
+    if (!schedule) {
+      return res.status(404).json({ message: "Doctor schedule not found." });
+    }
+
+    const timeSlot = schedule.availableTimes.get(day);
+
+    if (!timeSlot) {
+      return res
+        .status(404)
+        .json({ message: `No time slots available for ${day}.` });
+    }
+
+    return res.status(200).json({
+      day,
+      start: timeSlot.start,
+      end: timeSlot.end,
+    });
+  } catch (error) {
+    console.error("Error in getDayTimeRange:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+const createAppointment = async (req, res) => {
+  const { doctorId, slotDate, slotTime, doctorData, amount, day } = req.body;
+
+  if (!doctorId || !slotDate || !slotTime || !doctorData || !amount || !day) {
+    return res.json({ success: false, message: "All fields are required." });
+  }
+  // Function to format slotTime based on custom rounding
+  function formatSlotTime(time) {
+    const [timePart, period] = time.split(" ");
+    let [hours, minutes] = timePart.split(":").map(Number);
+
+    if (minutes >= 0 && minutes <= 14) {
+      minutes = 0;
+    } else if (minutes >= 15 && minutes <= 44) {
+      minutes = 30;
+    } else if (minutes >= 45 && minutes <= 59) {
+      minutes = 0;
+      hours += 1;
+    }
+
+    // Adjust for 12-hour format
+    if (hours === 12 && period === "AM") {
+      hours = 12; // noon stays 12
+    } else if (hours === 12 && period === "PM") {
+      // 12 PM remains 12
+    } else if (hours > 12) {
+      hours = hours - 12;
+    }
+
+    const formattedHours = hours.toString().padStart(2, "0");
+    const formattedMinutes = minutes.toString().padStart(2, "0");
+
+    return `${formattedHours}:${formattedMinutes} ${period}`;
+  }
+
+  const formattedSlotTime = formatSlotTime(slotTime);
+  // Use `formattedSlotTime` wherever needed
+
+  try {
+    // Check if the doctor exists
+    const doctor = await doctorModel.findById(doctorId);
+    if (!doctor) {
+      return res.json({ success: false, message: "Doctor not found." });
+    }
+
+    if (!doctor.available) {
+      return res.json({
+        success: false,
+        message: "Doctor is not available at the moment.",
+      });
+    }
+
+    // Fetch doctor's schedule
+    const schedule = await DoctorSchedule.findOne({ doctor: doctorId });
+
+    if (!schedule) {
+      return res.json({
+        success: false,
+        message: "Doctor schedule not found.",
+      });
+    }
+
+    // Check if the selected day is in the availableDays
+    if (!schedule.availableDays.includes(day)) {
+      return res.json({
+        success: false,
+        message: `Doctor is not available on ${day}.`,
+      });
+    }
+
+    // Check if slotTime falls within start and end time for the day
+    const timeRange = schedule.availableTimes.get(day);
+    if (!timeRange) {
+      return res.json({
+        success: false,
+        message: `No available time range defined for ${day}.`,
+      });
+    }
+
+    const { start, end } = timeRange;
+    if (formattedSlotTime < start || formattedSlotTime > end) {
+      return res.json({
+        success: false,
+        message: `Selected time is outside of doctor's available hours (${start} - ${end}) on ${day}.`,
+      });
+    }
+
+    // Check if slot is already booked
+    if (doctor.slots_booked[slotDate]?.includes(formattedSlotTime)) {
+      return res.json({ success: false, message: "Slot is already booked." });
+    }
+
+    // Update the doctor's slot bookings
+    if (!doctor.slots_booked[slotDate]) {
+      doctor.slots_booked[slotDate] = [];
+    }
+    doctor.slots_booked[slotDate].push(formattedSlotTime);
+    doctor.markModified("slots_booked");
+
+    // Create new appointment
+    const newAppointment = new appointmentModel({
+      doctorId,
+      slotDate,
+      slotTime: formattedSlotTime,
+      doctorData,
+      amount,
+      guestPatientId: doctorData.guestPatientId || null,
+      date: Date.now(),
+      payment: false,
+      isCompleted: false,
+      cancelled: false,
+      confirmed: true,
+    });
+
+    await newAppointment.save();
+    await doctor.save();
+
+    res.json({
+      success: true,
+      message: "Appointment created and doctor's slot updated successfully.",
+    });
+  } catch (error) {
+    console.error("Error creating appointment:", error);
+    res.json({
+      success: false,
+      message: "Failed to create appointment.",
+      error: error.message,
+    });
+  }
+};
+
 export {
   addDoctor,
   loginAdmin,
@@ -346,4 +647,12 @@ export {
   getDoctorById,
   updateDoctorInfo,
   deleteDoctor,
+  createGuestPatient,
+  updateGuestPatient,
+  getAllGuestPatients,
+  getGuestPatientById,
+  getDoctorsBySpecialty,
+  getDoctorAvailability,
+  getDayTimeRange,
+  createAppointment,
 };

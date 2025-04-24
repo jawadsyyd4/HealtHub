@@ -58,7 +58,10 @@ const appointmentsDoctor = async (req, res) => {
   try {
     const { doctorId } = req.body;
 
-    const appointments = await appointmentModel.find({ doctorId });
+    const appointments = await appointmentModel.find({ doctorId }).populate({
+      path: "guestPatientId",
+      select: "name dateOfBirth",
+    });
 
     res.json({ success: true, appointments });
   } catch (error) {
@@ -162,11 +165,15 @@ const doctorDashboard = async (req, res) => {
   try {
     const { doctorId } = req.body;
 
-    const appointments = await appointmentModel.find({ doctorId });
+    // Find appointments for the doctor and populate guest patient info if available
+    const appointments = await appointmentModel.find({ doctorId }).populate({
+      path: "guestPatientId",
+      select: "name dateOfBirth",
+    });
 
     let earnings = 0;
 
-    appointments.map((item) => {
+    appointments.forEach((item) => {
       if (item.isCompleted || item.payment) {
         earnings += item.amount;
       }
@@ -174,9 +181,10 @@ const doctorDashboard = async (req, res) => {
 
     let patients = [];
 
-    appointments.map((item) => {
-      if (!patients.includes(item.userId)) {
-        patients.push(item.userId);
+    appointments.forEach((item) => {
+      const id = item.userId || item.guestPatientId?._id;
+      if (id && !patients.includes(id.toString())) {
+        patients.push(id.toString());
       }
     });
 
@@ -184,7 +192,7 @@ const doctorDashboard = async (req, res) => {
       earnings,
       appointments: appointments.length,
       patients: patients.length,
-      latestAppointments: appointments.reverse().slice(0, 5),
+      latestAppointments: appointments.slice(-5).reverse(), // last 5, reversed for latest
     };
 
     res.json({ success: true, dashData });

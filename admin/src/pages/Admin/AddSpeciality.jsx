@@ -10,7 +10,7 @@ import { FaStethoscope } from 'react-icons/fa';
 import LoadingComponent from '../../components/LoadingComponent';
 
 const AddSpeciality = () => {
-    const { backendUrl, aToken, specialities, getAllSpecialities, deleteHandler } = useContext(AdminContext)
+    const { backendUrl, aToken, specialities, getAllSpecialities, deleteHandler, setDocInfo } = useContext(AdminContext)
     const [specialityImg, setSpecialityImg] = useState(false)
     const [name, setName] = useState('')
     const [open, setOpen] = useState(false)
@@ -127,20 +127,11 @@ const AddSpeciality = () => {
         if (aToken) {
             getAllSpecialities()
         }
+        setDocInfo(false)
     }, [aToken])
     return (
         <div className='m-5'>
-            <div className="absolute end-0 m-6">
-                {/* Button to open the dialog outside the form */}
-                <button
-                    type="button"
-                    onClick={() => setOpen(true)}
-                    className="top-6 right-6 bg-[#C0EB6A] hover:bg-[#a8d84f] text-white px-6 py-2 rounded-lg text-base font-semibold shadow-lg transition-all duration-300 ease-in-out hover:scale-105 cursor-pointer"
-                >
-                    Add Speciality
-                </button>
-
-
+            <div className="absolute end-0 me-5">
                 {/* Dialog component */}
                 <Dialog open={open} onClose={() => setOpen(false)} className="relative z-10">
                     <DialogBackdrop
@@ -238,8 +229,18 @@ const AddSpeciality = () => {
             </div>
 
             {/* Specialities List */}
-            <div className="w-full max-w-7xl mx-auto my-10">
-                <p className="mb-6 text-3xl font-semibold text-gray-800">All Specialties</p>
+            <div className="w-full max-w-7xl mx-auto">
+                <div className="mb-6 flex justify-between items-center">
+                    <p className="text-lg font-medium text-gray-800">All Specialties</p>
+                    <button
+                        type="button"
+                        onClick={() => setOpen(true)}
+                        className="bg-[#C0EB6A] hover:bg-[#a8d84f] text-white px-6 py-2 rounded-lg text-base font-semibold shadow-lg transition-all duration-300 ease-in-out hover:scale-105 cursor-pointer"
+                    >
+                        Add Speciality
+                    </button>
+                </div>
+
                 <div className="max-w-screen bg-white border rounded-lg shadow-lg text-sm max-h-[80vh] overflow-y-scroll min-h-[60vh]">
                     <div className="hidden sm:grid grid-cols-[0.5fr_2fr_7fr_2fr_2fr] grid-flow-col py-4 px-6 border-b bg-gray-100 text-gray-700 font-semibold">
                         <p className='m-auto'>#</p>

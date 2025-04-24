@@ -6,12 +6,13 @@ import { Link } from 'react-router-dom' // <-- Import Link
 
 const DoctorsList = () => {
 
-    const { doctors, aToken, getAllDoctors, changeAvailability, getDoctorData, deleteDoctor } = useContext(AdminContext)
+    const { doctors, aToken, getAllDoctors, changeAvailability, getDoctorData, deleteDoctor, setDocInfo } = useContext(AdminContext)
 
     useEffect(() => {
         if (aToken) {
             getAllDoctors()
         }
+        setDocInfo(false)
     }, [aToken])
 
     return (

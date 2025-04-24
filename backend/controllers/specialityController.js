@@ -46,43 +46,6 @@ const getSpecialities = async (req, res) => {
   }
 };
 
-// const deleteSpeciality = async (req, res) => {
-//   try {
-//     const { specialityId } = req.body;
-
-//     // Find the speciality to get its name (if you want to use the name in messages)
-//     const specialityToDelete = await specialityModel.findById(specialityId);
-
-//     if (!specialityToDelete) {
-//       return res.json({ success: false, message: "Speciality not found" });
-//     }
-
-//     // Automatically remove all doctors with the same speciality
-//     const { deletedCount } = await doctorModel.deleteMany({
-//       speciality: specialityId,
-//     });
-
-//     // Delete the speciality itself
-//     const deletedSpeciality = await specialityModel.findByIdAndDelete(
-//       specialityId
-//     );
-
-//     if (!deletedSpeciality) {
-//       // This should ideally not happen if the findById above succeeded,
-//       // but adding a check for robustness.
-//       return res.json({ success: false, message: "Speciality not found" });
-//     }
-
-//     res.json({
-//       success: true,
-//       message: `Speciality "${specialityToDelete.name}" and ${deletedCount} associated doctors deleted successfully`,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.json({ success: false, message: error.message });
-//   }
-// };
-
 const deleteSpeciality = async (req, res) => {
   try {
     const { specialityId } = req.body;

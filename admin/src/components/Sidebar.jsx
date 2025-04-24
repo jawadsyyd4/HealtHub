@@ -35,6 +35,10 @@ const Sidebar = () => {
                             <img className='w-8' src={assets.speciality_icon} />
                             <p className='hidden lg:block'>Manage Specialities</p>
                         </NavLink>
+                        <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/guest-patients'}>
+                            <img src={assets.people_icon} />
+                            <p className='hidden lg:block'>Guest Patients</p>
+                        </NavLink>
                     </ul>
                     : <ul>
 
