@@ -222,8 +222,8 @@ const updateDoctorProfile = async (req, res) => {
   try {
     const { doctorId, fees, address, available } = req.body;
 
-    // Find the doctor data
-    const docData = await doctorModel.findById(doctorId);
+    const docData = await doctorModel.findById(doctorId).populate("speciality"); // Populating the specialityId with the related specialty data
+
     if (!docData) {
       return res
         .status(404)
@@ -238,11 +238,13 @@ const updateDoctorProfile = async (req, res) => {
       // If the doctor is unavailable, remove all slots and cancel all future appointments
       if (!available) {
         // Find all future appointments for this doctor that are not cancelled
-        const appointments = await appointmentModel.find({
-          doctorId,
-          cancelled: false,
-          slotDate: { $gte: Date.now() }, // Only future appointments
-        });
+        const appointments = await appointmentModel
+          .find({
+            doctorId: doctorId,
+            cancelled: false,
+            slotDate: { $gte: Date.now() }, // Only future appointments
+          })
+          .populate("guestPatientId", "name email"); // Populating guestPatientId with name and email
 
         // Cancel the appointments and remove all slots for each relevant date
         const appointmentUpdates = appointments.map(async (appointment) => {
@@ -262,17 +264,28 @@ const updateDoctorProfile = async (req, res) => {
             slots_booked: docData.slots_booked,
           });
 
-          // Send an email notification to the patient with details
-          await sendEmailNotification(
-            appointment.userData.email,
-            docData.speciality,
-            appointment.userData.name, // Patient's name
-            {
-              doctorName: docData.name, // Doctor's name
-              slotDate: appointment.slotDate,
-              slotTime: appointment.slotTime,
-            }
-          );
+          // Check if userData exists in the appointment
+          const patientEmail = appointment.userData
+            ? appointment.userData.email
+            : appointment.guestPatientId?.email;
+
+          const patientName = appointment.userData
+            ? appointment.userData.name
+            : appointment.guestPatientId?.name;
+
+          if (patientEmail) {
+            // Send an email notification if userData has an email
+            await sendEmailNotification(
+              patientEmail,
+              docData.speciality.name,
+              patientName, // Patient's name
+              {
+                doctorName: docData.name, // Doctor's name
+                slotDate: appointment.slotDate,
+                slotTime: appointment.slotTime,
+              }
+            );
+          }
         });
 
         // Wait for all appointments to be updated, slots to be removed, and emails to be sent
@@ -417,7 +430,8 @@ const updateDoctorSchedule = async (req, res) => {
 };
 
 const sendEmailNotification = async (
-  userEmail,
+  patientEmail,
+  specialityName, // Speciality name now as a parameter
   patientName,
   appointmentDetails
 ) => {
@@ -434,8 +448,8 @@ const sendEmailNotification = async (
     // Email content with styled HTML
     const mailOptions = {
       from: process.env.EMAIL_USER, // Your email address
-      to: userEmail, // Recipient's email address
-      subject: "Appointment Cancellation Notification",
+      to: patientEmail, // Recipient's email address
+      subject: "Appointment Notification",
       html: `
         <html>
           <head>
@@ -481,16 +495,16 @@ const sendEmailNotification = async (
           </head>
           <body>
             <!-- Main content -->
-            <h1>Appointment Cancellation Notification</h1>
+            <h1>Appointment Confirmation</h1>
             <p>Dear ${patientName},</p>
-            <p>We regret to inform you that your appointment with Dr. ${appointmentDetails.doctorName} has been cancelled due to the doctor's unavailability on ${appointmentDetails.slotDate} at ${appointmentDetails.slotTime}.</p>
-            <p>We sincerely apologize for the inconvenience caused. To help you reschedule, please click the link below to explore other doctors in the same specialty and book a new appointment:</p>
+            <p>We are pleased to confirm your appointment with Dr. ${appointmentDetails.doctorName} in the ${specialityName} specialty on ${appointmentDetails.slotDate} at ${appointmentDetails.slotTime}.</p>
+            <p>Thank you for choosing us for your healthcare needs. If you need to make any changes, please don't hesitate to contact us.</p>
             <p><a href="http://localhost:5173/doctors">View Doctors and Book an Appointment</a></p>
     
             <!-- Footer -->
             <footer>
               <p>If you have any questions, please don't hesitate to contact us.</p>
-              <p>If you did not request this cancellation, please ignore this email.</p>
+              <p>If you did not request this appointment, please ignore this email.</p>
             </footer>
           </body>
         </html>
@@ -508,8 +522,8 @@ const changeAvailability = async (req, res) => {
   try {
     const { docId } = req.body;
 
-    // Find the doctor data
-    const docData = await doctorModel.findById(docId);
+    const docData = await doctorModel.findById(docId).populate("speciality"); // Populating the specialityId with the related specialty data
+
     if (!docData) {
       return res
         .status(404)
@@ -527,11 +541,13 @@ const changeAvailability = async (req, res) => {
     // If the doctor is unavailable, remove the corresponding slots and cancel all future appointments
     if (!newAvailability) {
       // Find all appointments for this doctor that are not cancelled and are in the future
-      const appointments = await appointmentModel.find({
-        doctorId: docId,
-        cancelled: false,
-        slotDate: { $gte: Date.now() }, // Only future appointments
-      });
+      const appointments = await appointmentModel
+        .find({
+          doctorId: docId,
+          cancelled: false,
+          slotDate: { $gte: Date.now() }, // Only future appointments
+        })
+        .populate("guestPatientId", "name email"); // Populating guestPatientId with name and email
 
       // Cancel the appointments and remove all slots for each relevant date
       const appointmentUpdates = appointments.map(async (appointment) => {
@@ -551,22 +567,32 @@ const changeAvailability = async (req, res) => {
           slots_booked: docData.slots_booked,
         });
 
-        // Send an email notification to the patient with additional details
-        await sendEmailNotification(
-          appointment.userData.email,
-          appointment.userData.name, // Patient's name
-          {
-            doctorName: docData.name, // Doctor's name
-            slotDate: appointment.slotDate,
-            slotTime: appointment.slotTime,
-          }
-        );
+        // Check if userData exists in the appointment
+        const patientEmail = appointment.userData
+          ? appointment.userData.email
+          : appointment.guestPatientId?.email;
+
+        const patientName = appointment.userData
+          ? appointment.userData.name
+          : appointment.guestPatientId?.name;
+
+        if (patientEmail) {
+          // Send an email notification if userData has an email
+          await sendEmailNotification(
+            patientEmail,
+            docData.speciality.name,
+            patientName, // Patient's name
+            {
+              doctorName: docData.name, // Doctor's name
+              slotDate: appointment.slotDate,
+              slotTime: appointment.slotTime,
+            }
+          );
+        }
       });
 
       // Wait for all appointments to be updated, slots to be removed, and emails to be sent
       await Promise.all(appointmentUpdates);
-
-      console.log(`All time slots for doctor ${docId} have been removed.`);
     }
 
     res.json({
