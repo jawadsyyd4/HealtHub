@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import SpecialityMenu from '../components/SpecialityMenu'
 import TopDoctors from '../components/TopDoctors'
 import Banner from '../components/Banner'
+import DoctorCalendar from '../components/DoctorCalendar'
 
 const Home = () => {
     return (
@@ -11,6 +12,7 @@ const Home = () => {
             <Header />
             <SpecialityMenu />
             <TopDoctors />
+            <DoctorCalendar />
             <Banner />
         </div>
     )

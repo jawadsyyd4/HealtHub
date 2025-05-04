@@ -2,43 +2,51 @@
 import React from 'react'
 import { assets } from '../assets/assets'
 import { Link } from 'react-router-dom'
+
 const Footer = () => {
     return (
         <div className='md:mx-10' id='footer'>
-            <div className='flex flex-col sm:grid grid-cols-[3fr_1fr_1fr] gap-14 my-10 mt-40 text-sm'>
+            <div className='flex flex-col sm:grid grid-cols-1 sm:grid-cols-[3fr_1fr_1fr] gap-10 sm:gap-14 my-10 mt-40 text-sm sm:text-base'>
                 {/* LEFT */}
-                <div>
-                    <img className='mb-5 w-32 -mt-5' src={assets.svgLogo} alt="" />
-                    <p className='w-full md:w-2/3 text-gray-600 leading-6'>Lorem ipsum dolor sit amet consectetur adipisicing elit. Iste, nemo minima, molestias numquam repellendus ex incidunt blanditiis cumque voluptas fugit sint eligendi! Tenetur sapiente cumque quaerat nesciunt accusantium quibusdam quod?</p>
+                <div className="sm:mb-0 mb-10">
+                    <img className='mb-5 w-32 -mt-5' src={assets.svgLogo} alt="HealthHub Logo" />
+                    <p className='w-full md:w-2/3 text-gray-600 leading-6 text-sm sm:text-base'>
+                        At HealthHub, we provide trusted medical professionals, ensuring quality care for all your healthcare needs. Connect with specialists who are always ready to help.
+                    </p>
                 </div>
+
                 {/* CENTER */}
-                <div>
-                    <p className='text-xl font-medium mb-5'>COMPANY</p>
+                <div className="sm:text-left text-center">
+                    <p className='text-xl font-medium mb-5 text-gray-700'>COMPANY</p>
                     <ul className='flex flex-col gap-2 text-gray-600'>
                         <li>
-                            <Link to={"http://localhost:5173/"} onClick={scrollTo(0, 0)}>Home</Link>
+                            <Link to={"/"} className="hover:text-gray-800" onClick={scrollTo(0, 0)}>Home</Link>
                         </li>
                         <li>
-                            <Link to={"http://localhost:5173/about"} onClick={scrollTo(0, 0)}>About us</Link>
+                            <Link to={"/about"} className="hover:text-gray-800" onClick={scrollTo(0, 0)}>About Us</Link>
                         </li>
                         <li>
-                            <Link to={"http://localhost:5173/contact"} onClick={scrollTo(0, 0)}>Contact us</Link>
+                            <Link to={"/contact"} className="hover:text-gray-800" onClick={scrollTo(0, 0)}>Contact Us</Link>
                         </li>
-                        <li><a href="#footer">Privacy Policy</a></li>
+                        <li>
+                            <a href="#footer" className="hover:text-gray-800">Privacy Policy</a>
+                        </li>
                     </ul>
                 </div>
+
                 {/* RIGHT */}
-                <div>
-                    <p className='text-xl font-medium mb-5'>GET IN TOUCH</p>
+                <div className="sm:text-left text-center">
+                    <p className='text-xl font-medium mb-5 text-gray-700'>GET IN TOUCH</p>
                     <ul className='flex flex-col gap-2 text-gray-600'>
-                        <li>+961-81-036-923</li>
+                        <li>+961 81-036923</li>
                         <li>jawadsyyd@gmail.com</li>
                     </ul>
                 </div>
             </div>
+
             <div className="">
                 <hr className='text-gray-200' />
-                <p className='py-5 text-sm text-center'>Copyright 2024@ HealthHub - All Right Reserved.</p>
+                <p className='py-5 text-sm text-center text-gray-600'>Copyright 2024@ HealthHub - All Rights Reserved.</p>
             </div>
         </div>
     )

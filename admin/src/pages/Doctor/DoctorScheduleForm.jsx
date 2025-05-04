@@ -5,20 +5,20 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const DoctorScheduleForm = () => {
-
     const { backendUrl, dToken } = useContext(DoctorContext);
     const [doctorAvailability, setDoctorAvailability] = useState(null);
     const [availableDays, setAvailableDays] = useState([]);
     const [availableTimes, setAvailableTimes] = useState({});
 
-    // Fetch current doctor schedule
     const getDoctorAvailability = async () => {
         try {
-            const { data } = await axios.get(backendUrl + "/api/doctor/schedule", { headers: { dToken } });
+            const { data } = await axios.get(backendUrl + "/api/doctor/schedule", {
+                headers: { dToken },
+            });
             if (data.success) {
                 setDoctorAvailability(data.schedule);
                 setAvailableDays(data.schedule.availableDays);
-                setAvailableTimes(data.schedule.availableTimes || availableTimes);
+                setAvailableTimes(data.schedule.availableTimes || {});
             } else {
                 toast.error(data.error);
             }
@@ -67,30 +67,23 @@ const DoctorScheduleForm = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
         try {
-            if (!doctorAvailability) {
-                const { data } = await axios.post(backendUrl + '/api/doctor/schedule', {
-                    availableDays,
-                    availableTimes,
-                }, { headers: { dToken } });
-                if (data.success) {
-                    toast.success(data.message);
-                    getDoctorAvailability()
-                } else {
-                    toast.error(data.message)
-                }
+            const endpoint = doctorAvailability
+                ? '/api/doctor/update-schedule'
+                : '/api/doctor/schedule';
+
+            const { data } = await axios.post(
+                backendUrl + endpoint,
+                { availableDays, availableTimes },
+                { headers: { dToken } }
+            );
+
+            if (data.success) {
+                toast.success(data.message);
+                getDoctorAvailability();
             } else {
-                const { data } = await axios.post(backendUrl + '/api/doctor/update-schedule', {
-                    availableDays,
-                    availableTimes,
-                }, { headers: { dToken } });
-                if (data.success) {
-                    toast.success(data.message);
-                    getDoctorAvailability()
-                } else {
-                    toast.error(data.message)
-                }
+                toast.error(data.message);
             }
         } catch (error) {
             console.error('Error submitting schedule', error);
@@ -99,61 +92,66 @@ const DoctorScheduleForm = () => {
     };
 
     return (
-        <div className="w-full p-6 bg-white rounded shadow-md  max-h-[90vh] min-h-[50vh] overflow-y-scroll">
-            <h2 className="text-2xl font-semibold mb-4">
+        <div className="w-full p-6 bg-white rounded-xl shadow-md max-h-[90vh] min-h-[50vh] overflow-y-scroll">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-700">
                 {doctorAvailability ? 'Update Your Schedule' : 'Create Your Schedule'}
             </h2>
-            <form onSubmit={handleSubmit}>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Days Selection */}
-                <div className="mb-4">
-                    <h3 className="text-lg font-medium mb-2">Select Available Days</h3>
-                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
-                        <div key={day} className="flex items-center mb-2">
-                            <input
-                                type="checkbox"
-                                id={day}
-                                checked={availableDays.includes(day)}
-                                onChange={() => handleDayChange(day)}
-                                className="mr-2"
-                            />
-                            <label htmlFor={day}>{day}</label>
+                <div>
+                    <h3 className="text-lg font-medium text-gray-800 mb-3">Select Available Days</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+                            <label key={day} className="flex items-center gap-2 text-gray-600">
+                                <input
+                                    type="checkbox"
+                                    checked={availableDays.includes(day)}
+                                    onChange={() => handleDayChange(day)}
+                                    className="accent-[#C0EB6A]"
+                                />
+                                {day}
+                            </label>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Time Slots */}
+                <div className="overflow-y-auto max-h-80 border rounded-md p-4 border-gray-200">
+                    <h3 className="text-lg font-medium text-gray-800 mb-4">Set Time Slots</h3>
+                    {availableDays.length === 0 && (
+                        <p className="text-sm text-gray-400 italic">Select a day to configure its time slots</p>
+                    )}
+                    {availableDays.map((day) => (
+                        <div key={day} className="mb-4">
+                            <h4 className="font-semibold text-gray-700 mb-2">{day}</h4>
+                            <div className="flex flex-wrap gap-4">
+                                <input
+                                    type="time"
+                                    value={availableTimes[day]?.start || ''}
+                                    onChange={(e) => handleTimeChange(day, 'start', e.target.value)}
+                                    className="border p-2 rounded-md w-[120px]"
+                                />
+                                <input
+                                    type="time"
+                                    value={availableTimes[day]?.end || ''}
+                                    onChange={(e) => handleTimeChange(day, 'end', e.target.value)}
+                                    className="border p-2 rounded-md w-[120px]"
+                                />
+                            </div>
                         </div>
                     ))}
                 </div>
 
-                {/* Time Slot Inputs for Each Day (Make this section scrollable) */}
-                <div className="mb-4 overflow-y-auto max-h-80"> {/* Scrollable container with a max height */}
-                    <h3 className="text-lg font-medium mb-2">Set Time Slots</h3>
-                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
-                        <div key={day} className="mb-3">
-                            <h4 className="font-semibold">{day}</h4>
-                            {availableDays.includes(day) && (
-                                <div className="flex space-x-4">
-                                    <input
-                                        type="time"
-                                        value={availableTimes[day].start}
-                                        onChange={(e) => handleTimeChange(day, 'start', e.target.value)}
-                                        className="border rounded p-2"
-                                    />
-                                    <input
-                                        type="time"
-                                        value={availableTimes[day].end}
-                                        onChange={(e) => handleTimeChange(day, 'end', e.target.value)}
-                                        className="border rounded p-2"
-                                    />
-
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                {/* Submit Button */}
+                <div>
+                    <button
+                        type="submit"
+                        className="px-6 py-3 bg-[#C0EB6A] text-white font-medium rounded-md hover:bg-[#a9d758] transition duration-300"
+                    >
+                        {doctorAvailability ? 'Update Schedule' : 'Create Schedule'}
+                    </button>
                 </div>
-
-                <button
-                    type="submit"
-                    className="px-4 py-2 border-[#C0EB6A] border-1 text-[#C0EB6A] rounded hover:bg-[#C0EB6A] hover:text-white transition-all duration-300 cursor-pointer"
-                >
-                    {doctorAvailability ? 'Update Schedule' : 'Create Schedule'}
-                </button>
             </form>
         </div>
     );

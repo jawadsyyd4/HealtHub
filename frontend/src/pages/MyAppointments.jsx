@@ -79,20 +79,6 @@ const MyAppointments = () => {
         }
     };
 
-    const checkUserRate = async (docId) => {
-        try {
-            const { data } = await axios.get(backendUrl + `/api/user/user-rate/${docId}`, { headers: { token } });
-            if (data.success) {
-                setValue(data.existingRating.rating); // Set the existing rating value
-            } else {
-                setValue(null)
-            }
-        } catch (error) {
-            console.log(error);
-            toast.error(error.message);
-        }
-    };
-
     const handleRatingSubmit = async () => {
         try {
             // Make sure value is the most recent
@@ -127,6 +113,9 @@ const MyAppointments = () => {
         <div>
             <p className='pb-3 mt-12 font-medium text-zinc-700 border-b'>My Appointments</p>
             <div>
+                {appointments.length === 0 && (
+                    <p className="text-sm text-zinc-600 mt-2">No appointments found.</p>
+                )}
                 {appointments.map((item, index) => (
                     <div className="grid grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-2 border-b relative" key={index}>
                         <div>
@@ -193,21 +182,29 @@ const MyAppointments = () => {
                             )}
                             {item.isCompleted && (
                                 <div className="flex flex-col gap-1">
-                                    {
-                                        !item.userRated && !showRate ? (
-                                            <button
-                                                onClick={() => {
-                                                    checkUserRate(item.doctorId);
-                                                    setShowRate(true);
-                                                    setCurrentEditId(item._id);
-                                                    setDocId(item.doctorId);
-                                                }}
-                                                className="cursor-pointer sm:min-w-48 py-2 border border-amber-400 rounded text-amber-400 hover:bg-amber-400 hover:text-white transition-all"
-                                            >
-                                                Rate doctor
-                                            </button>
-                                        ) : null
-                                    }
+                                    {!item.userRated && !showRate && (
+                                        <button
+                                            onClick={async () => {
+                                                const { data } = await axios.get(backendUrl + `/api/user/user-rate/${item.doctorId}`, { headers: { token } });
+                                                if (data.success && data.existingRating) {
+                                                    toast.info("You have already rated this doctor.");
+                                                    return;
+                                                }
+                                                setShowRate(true);
+                                                setCurrentEditId(item._id);
+                                                setDocId(item.doctorId);
+                                            }}
+                                            className="cursor-pointer sm:min-w-48 py-2 border border-amber-400 rounded text-amber-400 hover:bg-amber-400 hover:text-white transition-all"
+                                        >
+                                            Rate doctor
+                                        </button>
+                                    )}
+
+                                    {item.userRated && (
+                                        <button className="sm:min-w-48 py-2 border border-amber-400 rounded text-amber-400 cursor-not-allowed bg-amber-50">
+                                            Already Rated
+                                        </button>
+                                    )}
 
                                     {showRate && currentEditId === item._id && (
                                         <div className="flex flex-col gap-1">

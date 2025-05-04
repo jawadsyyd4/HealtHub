@@ -5,6 +5,7 @@ import appointmentModel from "../models/appointmentModel.js";
 import ratingModel from "../models/ratingModel.js";
 import DoctorSchedule from "../models/DoctorScheduleModel.js";
 import nodemailer from "nodemailer";
+import axios from "axios";
 
 const doctorsList = async (req, res) => {
   try {
@@ -13,13 +14,28 @@ const doctorsList = async (req, res) => {
       .select("-password -email") // Exclude sensitive fields
       .populate("speciality"); // Populate the speciality reference
 
+    // Retrieve the average rating for each doctor using the getDoctorAverageRating API
+    const doctorsWithRatings = await Promise.all(
+      doctors.map(async (doctor) => {
+        // Call the getDoctorAverageRating API
+        const response = await axios.get(
+          `http://localhost:4000/api/doctor/rating/${doctor._id}`
+        );
+        const averageRating = response.data.averageRating;
+
+        return {
+          ...doctor.toObject(), // Convert doctor document to plain object
+          averageRating, // Add the average rating to the doctor object
+        };
+      })
+    );
+
     res.json({
       success: true,
-      doctors,
+      doctors: doctorsWithRatings,
     });
   } catch (error) {
     console.error("Error fetching doctors list:", error);
-
     res.status(500).json({
       success: false,
       message: "Failed to retrieve doctors list.",
@@ -605,6 +621,24 @@ const changeAvailability = async (req, res) => {
   }
 };
 
+const getDoctorSchedules = async (req, res) => {
+  try {
+    const schedules = await DoctorSchedule.find().populate({
+      path: "doctor",
+      select: "-password", // exclude password field
+      populate: {
+        path: "speciality", // Assuming there's a reference to the specialty model in the doctor schema
+        select: "name", // Adjust as necessary based on what fields you want to return for specialty
+      },
+    });
+
+    res.status(200).json(schedules);
+  } catch (error) {
+    console.error("Error fetching doctor schedules:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
 export {
   changeAvailability,
   doctorsList,
@@ -620,4 +654,5 @@ export {
   getDoctorSchedule,
   createDoctorSchedule,
   updateDoctorSchedule,
+  getDoctorSchedules,
 };

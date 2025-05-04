@@ -13,6 +13,7 @@ import {
   getDoctorSchedule,
   createDoctorSchedule,
   updateDoctorSchedule,
+  getDoctorSchedules,
 } from "../controllers/doctorController.js";
 import authDoctor from "../middlewares/authDoctor.js";
 
@@ -36,4 +37,5 @@ doctorRouter.get("/schedule", authDoctor, getDoctorSchedule);
 doctorRouter.post("/schedule", authDoctor, createDoctorSchedule);
 doctorRouter.post("/update-schedule", authDoctor, updateDoctorSchedule);
 
+doctorRouter.get("/doctorSchedules", getDoctorSchedules);
 export default doctorRouter;

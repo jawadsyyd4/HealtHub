@@ -12,11 +12,12 @@ const About = () => {
             <div className="my-10 flex flex-col md:flex-row gap-12">
                 <img className='w-full md:max-w-[360px]' src={assets.about_image} alt="" />
                 <div className="flex flex-col justify-center gap-6 md:w-2/4 text-sm text-gray-600">
-                    <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Reiciendis dolor maiores quisquam deleniti nemo laborum ad tenetur eveniet similique consequatur, dolorum, saepe optio quis placeat odio obcaecati voluptatibus quae incidunt!</p>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta quae rem aut, molestias repellendus quaerat laudantium consequatur explicabo consectetur minus id odio, accusantium ipsa cumque? Quia tenetur dignissimos porro sed.</p>
+                    <p>At HealthHub, we are committed to connecting you with trusted healthcare professionals who prioritize your well-being. Our platform simplifies the process of finding the right doctor, ensuring a seamless experience for booking appointments.</p>
+                    <p>We understand the importance of healthcare, and our goal is to make quality medical services accessible to everyone. Whether you're seeking routine check-ups or specialized care, we are here to help you take the next step toward better health.</p>
                     <b className='text-gray-800'>Our Vision</b>
-                    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aperiam tempora officiis molestias nesciunt. Voluptate praesentium labore asperiores quis, numquam exercitationem suscipit officiis itaque enim, consequatur molestias at, facere velit tempora!</p>
+                    <p>Our vision is to create a healthier world by providing individuals with easy access to expert doctors and medical resources. Through our platform, we aim to empower people to make informed health decisions and enhance the quality of care they receive.</p>
                 </div>
+
             </div>
 
             <div className="text-xl my-4">
@@ -26,16 +27,17 @@ const About = () => {
             <div className="flex flex-col md:flex-row mb-20">
                 <div className='border px-10 md:px-16 py-8 sm:py-16 flex flex-col gap-5 text-[15px] hover:bg-[#C0EB6A] hover:text-white transition-all duration-300 text-gray-600 cursor-pointer'>
                     <b>Efficiency:</b>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Amet.</p>
+                    <p>We streamline the process of booking appointments, allowing you to quickly find and schedule time with trusted doctors, saving you valuable time and effort.</p>
                 </div>
                 <div className='border px-10 md:px-16 py-8 sm:py-16 flex flex-col gap-5 text-[15px] hover:bg-[#C0EB6A] hover:text-white transition-all duration-300 text-gray-600 cursor-pointer'>
                     <b>Convenience:</b>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Amet.</p>
+                    <p>Our platform is designed with your convenience in mind, offering easy access to a wide range of healthcare professionals and allowing you to book appointments from the comfort of your home.</p>
                 </div>
                 <div className='border px-10 md:px-16 py-8 sm:py-16 flex flex-col gap-5 text-[15px] hover:bg-[#C0EB6A] hover:text-white transition-all duration-300 text-gray-600 cursor-pointer'>
                     <b>Personalization:</b>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Amet.</p>
+                    <p>We offer personalized recommendations based on your health needs, helping you find the best doctors who align with your unique preferences and requirements.</p>
                 </div>
+
             </div>
         </div>
     )

@@ -156,25 +156,36 @@ const Appoitment = () => {
     useEffect(() => {
         const storedData = localStorage.getItem('appointmentData');
         if (storedData && docSlots) {
-            const { time } = JSON.parse(storedData);
+            const { time, dayOfWeek } = JSON.parse(storedData);
 
-            // Step 1: Get the first day key and its time slots
-            const firstDayKey = Object.keys(docSlots)[0];
-            const timeSlots = docSlots[firstDayKey];
+            const entries = Object.entries(docSlots);
+            let matchedDateIndex = -1;
+            let matchedTimeIndex = -1;
 
-            if (timeSlots && Array.isArray(timeSlots)) {
-                // Step 2: Set slotIndex to the first day (index 0)
-                setSlotIndex(0);
+            for (let i = 0; i < entries.length; i++) {
+                const [date, slots] = entries[i];
+                const jsDay = new Date(date).getDay(); // 0 = Sunday, 1 = Monday, etc.
+                const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-                // Step 3: Find the index of the time in the time slots (match by start time)
-                const timeIdx = timeSlots.findIndex(slot => slot.start === time);
+                if (weekDays[jsDay] === dayOfWeek) {
+                    matchedDateIndex = i;
+                    matchedTimeIndex = slots.findIndex(slot => slot.start === time);
 
-                if (timeIdx !== -1) {
-                    setSlotIndex2(timeIdx);
+                    if (matchedTimeIndex !== -1) {
+                        break;
+                    }
                 }
             }
 
-            // Optionally clear after use
+            if (matchedDateIndex !== -1 && matchedTimeIndex !== -1) {
+                const [matchedDate] = entries[matchedDateIndex];
+
+                setSlotIndex(matchedDateIndex);
+                setBookingDate(matchedDate);
+                setSlotIndex2(matchedTimeIndex);
+                setBookingTime(time);
+            }
+
             localStorage.removeItem('appointmentData');
         }
     }, [docSlots]);
