@@ -510,106 +510,130 @@ const createAppointment = async (req, res) => {
   const { doctorId, slotDate, slotTime, doctorData, amount, day } = req.body;
 
   if (!doctorId || !slotDate || !slotTime || !doctorData || !amount || !day) {
-    return res.json({ success: false, message: "All fields are required." });
+    return res
+      .status(400)
+      .json({ success: false, message: "All fields are required." });
   }
-  // Function to format slotTime based on custom rounding
-  function formatSlotTime(time) {
-    const [timePart, period] = time.split(" ");
-    let [hours, minutes] = timePart.split(":").map(Number);
 
-    if (minutes >= 0 && minutes <= 14) {
+  // Convert 12-hour slotTime to 24-hour format ("HH:mm")
+  function convertTo24Hour(time12h) {
+    const [time, modifier] = time12h.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+
+    if (modifier === "PM" && hours !== 12) {
+      hours += 12;
+    }
+    if (modifier === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}`;
+  }
+
+  // Round slotTime to nearest 30-minute interval
+  function roundToNearest30(time24h) {
+    let [hours, minutes] = time24h.split(":").map(Number);
+
+    if (minutes < 15) {
       minutes = 0;
-    } else if (minutes >= 15 && minutes <= 44) {
+    } else if (minutes < 45) {
       minutes = 30;
-    } else if (minutes >= 45 && minutes <= 59) {
+    } else {
       minutes = 0;
       hours += 1;
     }
 
-    // Adjust for 12-hour format
-    if (hours === 12 && period === "AM") {
-      hours = 12; // noon stays 12
-    } else if (hours === 12 && period === "PM") {
-      // 12 PM remains 12
-    } else if (hours > 12) {
-      hours = hours - 12;
-    }
+    if (hours === 24) hours = 0;
 
-    const formattedHours = hours.toString().padStart(2, "0");
-    const formattedMinutes = minutes.toString().padStart(2, "0");
-
-    return `${formattedHours}:${formattedMinutes} ${period}`;
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}`;
   }
 
-  const formattedSlotTime = formatSlotTime(slotTime);
-  // Use `formattedSlotTime` wherever needed
+  function to12HourFormat(time24) {
+    let [hours, minutes] = time24.split(":").map(Number);
+    const period = hours >= 12 ? "PM" : "AM";
+
+    hours = hours % 12 || 12; // convert "00" to "12"
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")} ${period}`;
+  }
+
+  const convertedTime = convertTo24Hour(slotTime);
+  const formattedSlotTime = roundToNearest30(convertedTime);
 
   try {
-    // Check if the doctor exists
     const doctor = await doctorModel.findById(doctorId);
     if (!doctor) {
-      return res.json({ success: false, message: "Doctor not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Doctor not found." });
     }
 
     if (!doctor.available) {
-      return res.json({
+      return res.status(403).json({
         success: false,
         message: "Doctor is not available at the moment.",
       });
     }
 
-    // Fetch doctor's schedule
     const schedule = await DoctorSchedule.findOne({ doctor: doctorId });
-
     if (!schedule) {
-      return res.json({
-        success: false,
-        message: "Doctor schedule not found.",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Doctor schedule not found." });
     }
 
-    // Check if the selected day is in the availableDays
     if (!schedule.availableDays.includes(day)) {
-      return res.json({
+      return res.status(400).json({
         success: false,
         message: `Doctor is not available on ${day}.`,
       });
     }
 
-    // Check if slotTime falls within start and end time for the day
     const timeRange = schedule.availableTimes.get(day);
     if (!timeRange) {
-      return res.json({
+      return res.status(400).json({
         success: false,
         message: `No available time range defined for ${day}.`,
       });
     }
 
     const { start, end } = timeRange;
+
     if (formattedSlotTime < start || formattedSlotTime > end) {
       return res.json({
         success: false,
-        message: `Selected time is outside of doctor's available hours (${start} - ${end}) on ${day}.`,
+        message: `Selected time (${formattedSlotTime}) is outside of the doctor's available hours (${start} - ${end}) on ${day}.`,
       });
     }
 
-    // Check if slot is already booked
-    if (doctor.slots_booked[slotDate]?.includes(formattedSlotTime)) {
-      return res.json({ success: false, message: "Slot is already booked." });
-    }
+    const slotTimeWithPeriod = to12HourFormat(formattedSlotTime);
 
-    // Update the doctor's slot bookings
+    // Ensure slots_booked[slotDate] exists
     if (!doctor.slots_booked[slotDate]) {
       doctor.slots_booked[slotDate] = [];
     }
-    doctor.slots_booked[slotDate].push(formattedSlotTime);
+
+    // Check if the slot is already booked
+    if (doctor.slots_booked[slotDate].includes(slotTimeWithPeriod)) {
+      return res.json({
+        success: false,
+        message: `The slot (${slotTimeWithPeriod}) on ${slotDate} is already booked.`,
+      });
+    }
+
+    // Slot is available, proceed to book it
+    doctor.slots_booked[slotDate].push(slotTimeWithPeriod);
     doctor.markModified("slots_booked");
 
-    // Create new appointment
     const newAppointment = new appointmentModel({
       doctorId,
       slotDate,
-      slotTime: formattedSlotTime,
+      slotTime: slotTimeWithPeriod,
       doctorData,
       amount,
       guestPatientId: doctorData.guestPatientId || null,
@@ -629,7 +653,7 @@ const createAppointment = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating appointment:", error);
-    res.json({
+    res.status(500).json({
       success: false,
       message: "Failed to create appointment.",
       error: error.message,

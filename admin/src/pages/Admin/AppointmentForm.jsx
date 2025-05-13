@@ -113,13 +113,13 @@ export default function AppointmentForm() {
 
             try {
                 const response = await axios.post(
-                    `${backendUrl}/api/admin/doctor-day-time`,
+                    'http://localhost:4000/api/admin/doctor-day-time',
                     { doctorId: formData.doctorId, day: formData.availableDay },
                     { headers: { aToken } }
                 );
 
-                if (response.data && response.data.from && response.data.to) {
-                    setTimeRange({ from: response.data.from, to: response.data.to });
+                if (response.data && response.data.start && response.data.end) {
+                    setTimeRange({ from: response.data.start, to: response.data.end });
                 }
             } catch (error) {
                 console.error("Error fetching time range:", error);
@@ -218,7 +218,6 @@ export default function AppointmentForm() {
             },
             amount: selectedDoctor.fees,
         };
-
         try {
             const response = await axios.post(
                 `${backendUrl}/api/admin/create-appointment`,
@@ -319,6 +318,12 @@ export default function AppointmentForm() {
                 </select>
             )}
 
+            {timeRange.from && timeRange.to && (
+                <span className="block mb-1 text-sm text-gray-700">
+                    Available time: {timeRange.from} to {timeRange.to}
+                </span>
+            )}
+
             <input
                 type="time"
                 name="slotTime"
@@ -328,7 +333,10 @@ export default function AppointmentForm() {
                 required
                 min={timeRange.from}
                 max={timeRange.to}
+                step="1800" // optional: allows selection in 1-minute steps
             />
+
+
 
             <input
                 type="number"

@@ -118,12 +118,28 @@ const Appoitment = () => {
         }
         setLoading(true); // Start loading
         try {
-            if (slotTime.split(':')[0] < 13) {
-                slotTime = slotTime + " AM"
-            } else {
-                slotTime = slotTime + " PM"
+            function convert24To12Hour(slotTime) {
+                let [hours, minutes] = slotTime.split(":").map(Number);
+                const period = hours >= 12 ? "PM" : "AM";
+
+                hours = hours % 12 || 12; // convert "00" to "12"
+                return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")} ${period}`;
             }
-            const { data } = await axios.post(backendUrl + '/api/user/book-appointment', { docId, slotDate, slotTime }, { headers: { token } })
+
+            const formattedTime = convert24To12Hour(slotTime);
+
+            const { data } = await axios.post(
+                backendUrl + '/api/user/book-appointment',
+                {
+                    docId,
+                    slotDate,
+                    slotTime: formattedTime  // ✅ pass converted time properly
+                },
+                {
+                    headers: { token }
+                }
+            );
+
 
             if (data.success) {
                 toast.success(data.message)
