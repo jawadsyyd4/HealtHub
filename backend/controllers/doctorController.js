@@ -190,7 +190,7 @@ const doctorDashboard = async (req, res) => {
     let earnings = 0;
 
     appointments.forEach((item) => {
-      if (item.isCompleted || item.payment) {
+      if (item.isCompleted) {
         earnings += item.amount;
       }
     });
@@ -236,91 +236,106 @@ const doctorProfile = async (req, res) => {
 
 const updateDoctorProfile = async (req, res) => {
   try {
-    const { doctorId, fees, address, available } = req.body;
+    const { doctorId, fees, address, available, unavailableTo } = req.body;
 
-    const docData = await doctorModel.findById(doctorId).populate("speciality"); // Populating the specialityId with the related specialty data
-
+    const docData = await doctorModel.findById(doctorId).populate("speciality");
     if (!docData) {
       return res
         .status(404)
         .json({ success: false, message: "Doctor not found" });
     }
 
-    // If the availability status is changing, handle the availability change
+    // Update availability
     if (docData.available !== available) {
-      // Update the doctor's availability
       await doctorModel.findByIdAndUpdate(doctorId, { available });
 
-      // If the doctor is unavailable, remove all slots and cancel all future appointments
-      if (!available) {
-        // Find all future appointments for this doctor that are not cancelled
-        const appointments = await appointmentModel
+      if (!available && unavailableTo) {
+        const unavailableDate = new Date(unavailableTo);
+        if (isNaN(unavailableDate)) {
+          return res
+            .status(400)
+            .json({ success: false, message: "Invalid unavailableTo date." });
+        }
+
+        // Set unavailableTo date
+        await DoctorSchedule.findOneAndUpdate(
+          { doctor: doctorId },
+          { unavailableTo: unavailableDate },
+          { upsert: true }
+        );
+
+        const unavailableDateStr = unavailableDate.toISOString().split("T")[0];
+
+        // Cancel appointments before that date
+        const appointmentsToCancel = await appointmentModel
           .find({
             doctorId: doctorId,
             cancelled: false,
-            slotDate: { $gte: Date.now() }, // Only future appointments
+            slotDate: { $lt: unavailableDateStr },
           })
-          .populate("guestPatientId", "name email"); // Populating guestPatientId with name and email
+          .populate("guestPatientId", "name email");
 
-        // Cancel the appointments and remove all slots for each relevant date
-        const appointmentUpdates = appointments.map(async (appointment) => {
-          // Cancel the appointment
-          appointment.cancelled = true;
-          appointment.isCompleted = false; // Mark as incomplete
-          await appointment.save();
+        const appointmentUpdates = appointmentsToCancel.map(
+          async (appointment) => {
+            appointment.cancelled = true;
+            appointment.isCompleted = false;
+            await appointment.save();
 
-          // Step 4: Remove all time slots for the date of this appointment
-          if (docData.slots_booked[appointment.slotDate]) {
-            // Remove the entire date from the slots_booked object
-            delete docData.slots_booked[appointment.slotDate];
-          }
-
-          // Step 5: Update the doctor's slots_booked field in the doctorModel
-          await doctorModel.findByIdAndUpdate(doctorId, {
-            slots_booked: docData.slots_booked,
-          });
-
-          // Check if userData exists in the appointment
-          const patientEmail = appointment.userData
-            ? appointment.userData.email
-            : appointment.guestPatientId?.email;
-
-          const patientName = appointment.userData
-            ? appointment.userData.name
-            : appointment.guestPatientId?.name;
-
-          if (patientEmail) {
-            // Send an email notification if userData has an email
-            await sendEmailNotification(
-              patientEmail,
-              docData.speciality.name,
-              patientName, // Patient's name
-              {
-                doctorName: docData.name, // Doctor's name
-                slotDate: appointment.slotDate,
-                slotTime: appointment.slotTime,
+            const slotDateKey = appointment.slotDate;
+            if (docData.slots_booked[slotDateKey]) {
+              docData.slots_booked[slotDateKey] = docData.slots_booked[
+                slotDateKey
+              ].filter((slot) => slot !== appointment.slotTime);
+              if (docData.slots_booked[slotDateKey].length === 0) {
+                delete docData.slots_booked[slotDateKey];
               }
-            );
-          }
-        });
+              await doctorModel.findByIdAndUpdate(doctorId, {
+                slots_booked: docData.slots_booked,
+              });
+            }
 
-        // Wait for all appointments to be updated, slots to be removed, and emails to be sent
+            const patientEmail =
+              appointment.userData?.email || appointment.guestPatientId?.email;
+            const patientName =
+              appointment.userData?.name || appointment.guestPatientId?.name;
+
+            if (patientEmail) {
+              await sendEmailNotification(
+                patientEmail,
+                docData.speciality.name,
+                patientName,
+                {
+                  doctorName: docData.name,
+                  slotDate: appointment.slotDate,
+                  slotTime: appointment.slotTime,
+                },
+                "appointment_cancelled_doctor_unavailable"
+              );
+            }
+          }
+        );
+
         await Promise.all(appointmentUpdates);
+      }
+
+      // If doctor is now available, clear unavailableTo
+      if (available) {
+        await DoctorSchedule.findOneAndUpdate(
+          { doctor: doctorId },
+          { unavailableTo: null }
+        );
       }
     }
 
-    // Update other doctor details (fees, address)
-    await doctorModel.findByIdAndUpdate(doctorId, {
-      fees,
-      address,
-    });
+    // Update other profile fields
+    await doctorModel.findByIdAndUpdate(doctorId, { fees, address });
 
     res.json({
       success: true,
       message: "Doctor profile updated successfully.",
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error updating doctor profile:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

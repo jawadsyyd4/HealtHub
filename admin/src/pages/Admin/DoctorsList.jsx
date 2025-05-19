@@ -5,8 +5,8 @@ import { assets } from '../../assets/assets'
 import { Link } from 'react-router-dom' // <-- Import Link
 
 const DoctorsList = () => {
-
-    const { doctors, aToken, getAllDoctors, changeAvailability, getDoctorData, deleteDoctor, setDocInfo } = useContext(AdminContext)
+    {/*changeAvailability*/ }
+    const { doctors, aToken, getAllDoctors, getDoctorData, deleteDoctor, setDocInfo } = useContext(AdminContext)
 
     useEffect(() => {
         if (aToken) {
@@ -31,7 +31,7 @@ const DoctorsList = () => {
                 {
                     doctors.map((item, index) => (
                         <div key={index} className="border border-indigo-200 rounded-xl max-w-56 overflow-hidden group relative">
-                            <div className="hidden flex-col group-hover:block">
+                            <div className="flex-col group-hover:block">
                                 <button onClick={() => { getDoctorData(item._id) }} className='absolute end-0 top-0 me-1 mt-1 rounded-xl bg-[#C0EB6A] text-white p-0.5 group-hover:bg-white group-hover:text-[#C0EB6A] cursor-pointer'>
                                     <img className='w-7' src={assets.edit_icon} alt="" />
                                 </button>
@@ -43,10 +43,10 @@ const DoctorsList = () => {
                             <div className="p-4">
                                 <p className='text-neutral-800 text-lg font-medium'>{item.name}</p>
                                 <p className='text-zinc-600 text-sm'>{item.speciality.name}</p>
-                                <div className="mt-2 flex items-center gap-1 text-sm">
+                                {/* <div className="mt-2 flex items-center gap-1 text-sm">
                                     <input onChange={() => changeAvailability(item._id)} type="checkbox" checked={item.available} />
                                     <p>available</p>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                     ))

@@ -18,6 +18,10 @@ const doctorScheduleSchema = new mongoose.Schema({
     },
     required: true,
   },
+  unavailableTo: {
+    type: Date,
+    default: null,
+  },
 });
 
 const DoctorSchedule =

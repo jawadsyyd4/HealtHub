@@ -10,6 +10,7 @@ import DoctorSchedule from "../models/DoctorScheduleModel.js";
 import ratingModel from "../models/ratingModel.js";
 import specialityModel from "../models/specialityModel.js";
 import guestPatientModel from "../models/guestPatientModel.js";
+import axios from "axios";
 
 const addDoctor = async (req, res) => {
   try {
@@ -209,17 +210,124 @@ const adminDashboard = async (req, res) => {
     const users = await userModel.find({});
     const appointments = await appointmentModel.find({});
 
+    // 1. Get average rating for each doctor via API
+    const doctorRatings = await Promise.all(
+      doctors.map(async (doctor) => {
+        try {
+          const response = await axios.get(
+            `http://localhost:4000/api/doctor/rating/${doctor._id}`
+          );
+          return {
+            doctor,
+            averageRating: response.data.averageRating || 0,
+          };
+        } catch {
+          return { doctor, averageRating: 0 };
+        }
+      })
+    );
+
+    const minRatingValue = Math.min(
+      ...doctorRatings.map((d) => d.averageRating)
+    );
+    const minRatedDoctors = doctorRatings.filter(
+      (d) => d.averageRating === minRatingValue
+    );
+
+    // 2. Calculate unique patient counts per doctor
+    const doctorPatientMap = {};
+    appointments.forEach(({ doctorId, userId }) => {
+      if (!doctorPatientMap[doctorId]) doctorPatientMap[doctorId] = new Set();
+      if (userId) doctorPatientMap[doctorId].add(userId.toString());
+    });
+
+    const maxPatientCount = Math.max(
+      0,
+      ...Object.values(doctorPatientMap).map((set) => set.size)
+    );
+
+    const maxPatientsDoctors = Object.entries(doctorPatientMap)
+      .filter(([_, set]) => set.size === maxPatientCount)
+      .map(([doctorId]) => {
+        const doctor = doctors.find((doc) => doc._id.toString() === doctorId);
+        return doctor ? { doctor, patientCount: maxPatientCount } : null;
+      })
+      .filter(Boolean);
+
+    // 3. Doctors with no appointments this week
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 7);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    const appointmentsThisWeek = appointments.filter((app) => {
+      const slotDate = new Date(app.slotDate);
+      return slotDate >= weekStart && slotDate <= weekEnd;
+    });
+
+    const doctorsWithAppointmentsThisWeek = new Set(
+      appointmentsThisWeek.map((app) => app.doctorId.toString())
+    );
+
+    const doctorsNoAppointmentsThisWeek = doctors.filter(
+      (doc) => !doctorsWithAppointmentsThisWeek.has(doc._id.toString())
+    );
+
+    // 4. Doctor(s) with most cancelled appointments
+    const cancelCounts = {};
+    appointments.forEach(({ doctorId, cancelled }) => {
+      if (cancelled) {
+        const id = doctorId.toString();
+        cancelCounts[id] = (cancelCounts[id] || 0) + 1;
+      }
+    });
+
+    const maxCancelled = Math.max(0, ...Object.values(cancelCounts));
+
+    const mostCancelledDoctors = Object.entries(cancelCounts)
+      .filter(([_, count]) => count === maxCancelled)
+      .map(([doctorId]) => {
+        const doctor = doctors.find((doc) => doc._id.toString() === doctorId);
+        return doctor ? { doctor, cancelledCount: maxCancelled } : null;
+      })
+      .filter(Boolean);
+
+    // 🔹 5. Doctors with unavailableTo set
+    const temporarilyUnavailable = await DoctorSchedule.find({
+      unavailableTo: { $ne: null },
+    }).populate("doctor", "name email");
+
+    const doctorsTemporarilyUnavailable = temporarilyUnavailable.map(
+      (entry) => ({
+        doctor: entry.doctor,
+        unavailableTo: entry.unavailableTo,
+      })
+    );
+
+    // ✅ Final dashboard data
     const dashData = {
       doctors: doctors.length,
       patients: users.length,
       appointments: appointments.length,
-      latestAppointments: appointments.reverse().slice(0, 5),
+      latestAppointments: appointments.slice().reverse().slice(0, 5),
+      minRatedDoctors: minRatedDoctors.map((d) => ({
+        doctor: d.doctor,
+        averageRating: d.averageRating,
+      })),
+      maxPatientsDoctors,
+      doctorsNoAppointmentsThisWeek,
+      mostCancelledDoctors,
+      doctorsTemporarilyUnavailable, // <-- NEW section
     };
 
     res.json({ success: true, dashData });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ success: false, message: error.message });
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -438,7 +546,7 @@ const getDoctorsBySpecialty = async (req, res) => {
 
     // Find all available doctors with the matched specialty ID
     const doctors = await doctorModel
-      .find({ speciality: specialty._id, available: true })
+      .find({ speciality: specialty._id })
       .select("-password");
 
     return res.status(200).json({ doctors });
@@ -464,7 +572,10 @@ const getDoctorAvailability = async (req, res) => {
         .json({ message: "Schedule not found for this doctor." });
     }
 
-    return res.status(200).json({ availableDays: schedule.availableDays });
+    return res.status(200).json({
+      availableDays: schedule.availableDays,
+      unavailableTo: schedule.unavailableTo,
+    });
   } catch (error) {
     console.error("Error in getDoctorAvailability:", error);
     res.status(500).json({ message: "Server error" });
@@ -515,27 +626,20 @@ const createAppointment = async (req, res) => {
       .json({ success: false, message: "All fields are required." });
   }
 
-  // Convert 12-hour slotTime to 24-hour format ("HH:mm")
-  function convertTo24Hour(time12h) {
+  const convertTo24Hour = (time12h) => {
     const [time, modifier] = time12h.split(" ");
     let [hours, minutes] = time.split(":").map(Number);
 
-    if (modifier === "PM" && hours !== 12) {
-      hours += 12;
-    }
-    if (modifier === "AM" && hours === 12) {
-      hours = 0;
-    }
+    if (modifier === "PM" && hours !== 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
 
     return `${hours.toString().padStart(2, "0")}:${minutes
       .toString()
       .padStart(2, "0")}`;
-  }
+  };
 
-  // Round slotTime to nearest 30-minute interval
-  function roundToNearest30(time24h) {
+  const roundToNearest30 = (time24h) => {
     let [hours, minutes] = time24h.split(":").map(Number);
-
     if (minutes < 15) {
       minutes = 0;
     } else if (minutes < 45) {
@@ -544,23 +648,21 @@ const createAppointment = async (req, res) => {
       minutes = 0;
       hours += 1;
     }
-
     if (hours === 24) hours = 0;
 
     return `${hours.toString().padStart(2, "0")}:${minutes
       .toString()
       .padStart(2, "0")}`;
-  }
+  };
 
-  function to12HourFormat(time24) {
+  const to12HourFormat = (time24) => {
     let [hours, minutes] = time24.split(":").map(Number);
     const period = hours >= 12 ? "PM" : "AM";
-
-    hours = hours % 12 || 12; // convert "00" to "12"
+    hours = hours % 12 || 12;
     return `${hours.toString().padStart(2, "0")}:${minutes
       .toString()
       .padStart(2, "0")} ${period}`;
-  }
+  };
 
   const convertedTime = convertTo24Hour(slotTime);
   const formattedSlotTime = roundToNearest30(convertedTime);
@@ -573,22 +675,31 @@ const createAppointment = async (req, res) => {
         .json({ success: false, message: "Doctor not found." });
     }
 
-    if (!doctor.available) {
-      return res.status(403).json({
+    const schedule = await DoctorSchedule.findOne({ doctor: doctorId });
+    if (!schedule) {
+      return res.json({
         success: false,
-        message: "Doctor is not available at the moment.",
+        message: "Doctor schedule not found.",
       });
     }
 
-    const schedule = await DoctorSchedule.findOne({ doctor: doctorId });
-    if (!schedule) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Doctor schedule not found." });
+    // Check against unavailableTo
+    if (schedule.unavailableTo) {
+      const appointmentDateStr = new Date(slotDate).toISOString().split("T")[0];
+      const unavailableToStr = new Date(schedule.unavailableTo)
+        .toISOString()
+        .split("T")[0];
+      if (appointmentDateStr < unavailableToStr) {
+        return res.json({
+          success: false,
+          message: `Cannot book an appointment before ${unavailableToStr}. Doctor is unavailable until then.`,
+        });
+      }
     }
 
+    // Validate day and time
     if (!schedule.availableDays.includes(day)) {
-      return res.status(400).json({
+      return res.json({
         success: false,
         message: `Doctor is not available on ${day}.`,
       });
@@ -596,14 +707,13 @@ const createAppointment = async (req, res) => {
 
     const timeRange = schedule.availableTimes.get(day);
     if (!timeRange) {
-      return res.status(400).json({
+      return res.json({
         success: false,
         message: `No available time range defined for ${day}.`,
       });
     }
 
     const { start, end } = timeRange;
-
     if (formattedSlotTime < start || formattedSlotTime > end) {
       return res.json({
         success: false,
@@ -613,12 +723,11 @@ const createAppointment = async (req, res) => {
 
     const slotTimeWithPeriod = to12HourFormat(formattedSlotTime);
 
-    // Ensure slots_booked[slotDate] exists
+    // Check for existing slot booking
     if (!doctor.slots_booked[slotDate]) {
       doctor.slots_booked[slotDate] = [];
     }
 
-    // Check if the slot is already booked
     if (doctor.slots_booked[slotDate].includes(slotTimeWithPeriod)) {
       return res.json({
         success: false,
@@ -626,7 +735,7 @@ const createAppointment = async (req, res) => {
       });
     }
 
-    // Slot is available, proceed to book it
+    // Book the slot
     doctor.slots_booked[slotDate].push(slotTimeWithPeriod);
     doctor.markModified("slots_booked");
 
@@ -653,7 +762,7 @@ const createAppointment = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating appointment:", error);
-    res.status(500).json({
+    res.json({
       success: false,
       message: "Failed to create appointment.",
       error: error.message,

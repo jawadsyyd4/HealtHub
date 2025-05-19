@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { AppContext } from '../context/AppContext';
 import { toast } from 'react-toastify';
@@ -16,13 +16,31 @@ const Login = () => {
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
 
+    // After successful login, check if there's a pending appointment to restore
+    const handlePostLoginRedirect = () => {
+        const pending = localStorage.getItem('pendingAppointment');
+        if (pending) {
+            const { docId } = JSON.parse(pending);
+
+            // Redirect to appointment page for the specific doctor
+            navigate(`/appointment/${docId}`);
+        } else {
+            // No pending appointment, just go to homepage or dashboard
+            navigate('/');
+        }
+    };
+
     const onSubmitHandler = async (event) => {
         event.preventDefault();
         setLoading(true); // Start loading
 
         try {
             if (state === 'Sign Up') {
-                const { data } = await axios.post(backendUrl + '/api/user/register', { name, password, email });
+                const { data } = await axios.post(backendUrl + '/api/user/register', {
+                    name,
+                    password,
+                    email,
+                });
                 if (data.success) {
                     toast.success(data.message);
                     localStorage.setItem('token', data.token);
@@ -32,11 +50,16 @@ const Login = () => {
                     toast.error(data.message);
                 }
             } else {
-                const { data } = await axios.post(backendUrl + '/api/user/login', { password, email });
+                const { data } = await axios.post(backendUrl + '/api/user/login', {
+                    password,
+                    email,
+                });
                 if (data.success) {
                     localStorage.setItem('token', data.token);
                     setToken(data.token);
-                    navigate('/');
+
+                    // Redirect user based on saved pending appointment or homepage
+                    handlePostLoginRedirect();
                 } else {
                     toast.error(data.message);
                 }
@@ -50,20 +73,21 @@ const Login = () => {
 
     // Navigate to the forgot password page
     const handleForgotPassword = () => {
-        navigate('/forgot-password');  // Adjust the path to your "Forgot Password" page
+        navigate('/forgot-password'); // Adjust path as needed
     };
 
-
     return (
-        <form onSubmit={onSubmitHandler} className='min-h-[80vh] flex items-center'>
+        <form onSubmit={onSubmitHandler} className="min-h-[80vh] flex items-center">
             <div className="flex flex-col gap-3 m-auto items-start p-8 min-w-[340px] sm:min-w-96 border-0 rounded-xl text-zinc-600 text-sm shadow-lg">
-                <p className='text-2xl font-semibold'>{state === 'Sign Up' ? "Create Account" : "Login"}</p>
-                <p>Please {state === 'Sign Up' ? "Signup" : "Login"} to book appointment</p>
+                <p className="text-2xl font-semibold">
+                    {state === 'Sign Up' ? 'Create Account' : 'Login'}
+                </p>
+                <p>Please {state === 'Sign Up' ? 'Signup' : 'Login'} to book appointment</p>
                 {state === 'Sign Up' && (
                     <div className="w-full">
                         <p>Full Name</p>
                         <input
-                            className='border border-zinc-300 rounded w-full p-2 mt-1'
+                            className="border border-zinc-300 rounded w-full p-2 mt-1"
                             type="text"
                             onChange={(e) => setName(e.target.value)}
                             value={name}
@@ -74,7 +98,7 @@ const Login = () => {
                 <div className="w-full">
                     <p>Email</p>
                     <input
-                        className='border border-zinc-300 rounded w-full p-2 mt-1'
+                        className="border border-zinc-300 rounded w-full p-2 mt-1"
                         type="email"
                         onChange={(e) => setEmail(e.target.value)}
                         value={email}
@@ -84,7 +108,7 @@ const Login = () => {
                 <div className="w-full">
                     <p>Password</p>
                     <input
-                        className='border border-zinc-300 rounded w-full p-2 mt-1'
+                        className="border border-zinc-300 rounded w-full p-2 mt-1"
                         type="password"
                         onChange={(e) => setPassword(e.target.value)}
                         value={password}
@@ -94,7 +118,7 @@ const Login = () => {
                     {state === 'Log in' && (
                         <p>
                             <span
-                                className='text-[#C0EB6A] underline cursor-pointer float-end'
+                                className="text-[#C0EB6A] underline cursor-pointer float-end"
                                 onClick={handleForgotPassword}
                             >
                                 Forgot Password?
@@ -115,17 +139,19 @@ const Login = () => {
                             ) : (
                                 <FaSignInAlt className="animate-bounce" />
                             )}
-                            {state === 'Sign Up' ? "Creating Account..." : "Logging in..."}
+                            {state === 'Sign Up' ? 'Creating Account...' : 'Logging in...'}
                         </>
+                    ) : state === 'Sign Up' ? (
+                        'Create Account'
                     ) : (
-                        state === 'Sign Up' ? "Create Account" : "Login"
+                        'Login'
                     )}
                 </button>
                 {state === 'Sign Up' ? (
                     <p>
-                        Already have an account?{" "}
+                        Already have an account?{' '}
                         <span
-                            className='text-[#C0EB6A] underline cursor-pointer'
+                            className="text-[#C0EB6A] underline cursor-pointer"
                             onClick={() => setState('Log in')}
                         >
                             Login here
@@ -133,9 +159,9 @@ const Login = () => {
                     </p>
                 ) : (
                     <p>
-                        Create a new account?{" "}
+                        Create a new account?{' '}
                         <span
-                            className='text-[#C0EB6A] underline cursor-pointer'
+                            className="text-[#C0EB6A] underline cursor-pointer"
                             onClick={() => setState('Sign Up')}
                         >
                             click here

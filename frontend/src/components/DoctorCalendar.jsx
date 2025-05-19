@@ -154,7 +154,7 @@ const DoctorCalendar = () => {
                                                     <button
                                                         key={index}
                                                         onClick={() => handleSelect(doctor._id, day, time)}
-                                                        className={`inline-block ${doctor.available ? "bg-green-300 text-green-900" : "bg-red-300 text-red-900"} text-xs md:text-sm font-medium px-2 py-1 rounded-lg text-center`}
+                                                        className={`inline-block bg-green-300 text-green-900 text-xs md:text-sm font-medium px-2 py-1 rounded-lg text-center`}
                                                     >
                                                         <div className="cursor-pointer">
                                                             <span>{doctor.name}</span> <br />

@@ -79,7 +79,7 @@ const AllAppointments = () => {
                     <p className='m-auto'>Date & Time</p>
                     <p className='m-auto'>Doctor</p>
                     <p className='m-auto'>Fees</p>
-                    <p className='m-auto'>Actions</p>
+                    <p className='m-auto'>Attended</p>
                 </div>
 
                 {currentAppointments.map((item, index) => (

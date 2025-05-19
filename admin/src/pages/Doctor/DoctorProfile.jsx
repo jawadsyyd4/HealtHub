@@ -1,36 +1,56 @@
 // eslint-disable-next-line no-unused-vars
-import React from 'react'
-import { useContext } from 'react'
-import { DoctorContext } from '../../context/DoctorContext'
-import { useEffect } from 'react'
-import { AppContext } from '../../context/AppContext'
-import { useState } from 'react'
-import axios from 'axios'
-import { toast } from 'react-toastify'
+import React from 'react';
+import { useContext, useState, useEffect } from 'react';
+import { DoctorContext } from '../../context/DoctorContext';
+import { AppContext } from '../../context/AppContext';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const DoctorProfile = () => {
+    const { setProfileData, profileData, getProfileData, dToken, backendUrl } = useContext(DoctorContext);
+    const { currency } = useContext(AppContext);
 
-    const { setProfileData, profileData, getProfileData, dToken, backendUrl } = useContext(DoctorContext)
-
-    const { currency } = useContext(AppContext)
-
-
-    const [isEdit, setIsEdit] = useState(false)
-
+    const [isEdit, setIsEdit] = useState(false);
+    const [showUnavailableTimes, setShowUnavailableTimes] = useState(false);
+    const [unavailableTo, setUnavailableTo] = useState('');
+    const [unavailableToError, setUnavailableToError] = useState('');
 
     const updateProfile = async () => {
+        setUnavailableToError('');
+
+        if (profileData.available === false) {
+            if (!unavailableTo) {
+                setUnavailableToError('Unavailable To is required');
+                return;
+            }
+        }
+
         try {
-            const { address, fees, available } = profileData;
+            const { address, fees, available, unavailableFrom, unavailableTo } = profileData;
+
+            const payload = {
+                doctorId: profileData._id,
+                address,
+                fees,
+                available,
+            };
+
+            if (!available) {
+                payload.unavailableFrom = unavailableFrom;
+                payload.unavailableTo = unavailableTo;
+            }
 
             const { data } = await axios.post(
                 backendUrl + "/api/doctor/update-profile",
-                { doctorId: profileData._id, address, fees, available }, // Pass the data separately
+                payload,
                 { headers: { dToken } }
             );
 
             if (data.success) {
                 toast.success(data.message);
                 setIsEdit(false);
+                setShowUnavailableTimes(false);
+                setUnavailableTo('');
                 getProfileData();
             } else {
                 toast.error(data.message);
@@ -41,12 +61,36 @@ const DoctorProfile = () => {
         }
     };
 
+    const handleAvailabilityChange = (e) => {
+        const isAvailable = e.target.checked;
+        setProfileData(prev => ({ ...prev, available: isAvailable }));
+
+        if (isAvailable) {
+            setShowUnavailableTimes(false);
+            setUnavailableTo('');
+            setUnavailableToError('');
+            setProfileData(prev => ({
+                ...prev,
+                unavailableFrom: null,
+                unavailableTo: null
+            }));
+        } else {
+            setShowUnavailableTimes(true);
+        }
+
+        // Scroll to the availability section
+        const el = document.getElementById('available');
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
 
     useEffect(() => {
         if (dToken) {
-            getProfileData()
+            getProfileData();
         }
-    }, [dToken])
+    }, [dToken]);
 
     return profileData && (
         <div>
@@ -109,12 +153,55 @@ const DoctorProfile = () => {
                     </div>
                     <div className="flex gap-1 pt-2">
                         <input
-                            onChange={() => isEdit && setProfileData(prev => ({ ...prev, available: !prev.available }))}
+                            id="available"
+                            onChange={handleAvailabilityChange}
                             checked={profileData?.available || false} // Handle possible undefined
                             type="checkbox"
                         />
                         <label htmlFor="">Available</label>
                     </div>
+
+                    {isEdit && showUnavailableTimes && (
+                        <div className="flex flex-col gap-4 mt-4 p-4 rounded-lg border border-lime-300 bg-lime-50">
+                            <div>
+                                <label htmlFor="unavailableFrom" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Unavailable From:
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    id="unavailableFrom"
+                                    className="w-full bg-gray-100 text-gray-700 border border-lime-300 rounded-md p-2 text-sm cursor-not-allowed"
+                                    value={new Date().toISOString().slice(0, 16)}
+                                    readOnly
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="unavailableTo" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Unavailable To:
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    id="unavailableTo"
+                                    className={`w-full border rounded-md p-2 text-sm focus:outline-none ${unavailableToError
+                                        ? 'border-red-500 bg-red-50'
+                                        : 'border-lime-300 focus:ring-2 focus:ring-lime-300'
+                                        }`}
+                                    value={unavailableTo}
+                                    onChange={(e) => {
+                                        setUnavailableTo(e.target.value);
+                                        setProfileData(prev => ({ ...prev, unavailableTo: e.target.value }));
+                                        setUnavailableToError('');
+                                    }}
+                                    required
+                                />
+                                {unavailableToError && (
+                                    <p className="text-red-500 text-xs mt-1">{unavailableToError}</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {
                         isEdit
                             ? <button onClick={updateProfile} className='px-4 py-1 border border-[#C0EB6A] text-sm rounded-full mt-5 cursor-pointer hover:bg-[#C0EB6A] hover:text-white transition-all'>
@@ -128,7 +215,6 @@ const DoctorProfile = () => {
             </div>
         </div>
     );
-
 }
 
-export default DoctorProfile
+export default DoctorProfile;

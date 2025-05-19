@@ -23,8 +23,8 @@ export default function AppointmentForm() {
     const [speciality, setSpeciality] = useState("");
     const [doctors, setDoctors] = useState([]);
     const [loadingDoctors, setLoadingDoctors] = useState(false);
+    const [unavailableTo, setUnavailableTo] = useState(false)
     const navigate = useNavigate();
-
     const handleChange = (e) => {
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
@@ -99,6 +99,7 @@ export default function AppointmentForm() {
                     { headers: { aToken } }
                 );
                 setAvailableDays(response.data.availableDays || []);
+                setUnavailableTo(response.data.unavailableTo)
             } catch (error) {
                 console.error("Error fetching available days:", error);
             }
@@ -188,7 +189,6 @@ export default function AppointmentForm() {
 
         return `${formattedHoursWithZero}:${formattedMinutes} ${period}`;
     }
-
 
     const createAppointment = async (e) => {
         e.preventDefault();
@@ -300,7 +300,17 @@ export default function AppointmentForm() {
                     ))}
                 </select>
             )}
-
+            {/* Show unavailableTo note after doctor selection but before date */}
+            {unavailableTo && (
+                <p className="text-sm text-red-600 mt-2">
+                    Note: Unavailable until{" "}
+                    {new Date(unavailableTo).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                    })}
+                </p>
+            )}
             {formData.availableDay && (
                 <select
                     name="slotDate"
@@ -336,12 +346,10 @@ export default function AppointmentForm() {
                 step="1800" // optional: allows selection in 1-minute steps
             />
 
-
-
             <input
-                type="number"
+                type="text"
                 name="amount"
-                value={doctorFees}
+                value={doctorFees + "$"}
                 onChange={handleChange}
                 className="w-full p-2 rounded border"
                 readOnly
@@ -350,7 +358,7 @@ export default function AppointmentForm() {
             <button
                 onClick={createAppointment}
                 type="submit"
-                className="bg-[#C0EB6A] hover:scale-105 cursor-pointer text-white text-black py-2 px-4 rounded transition flex items-center justify-center"
+                className="bg-[#C0EB6A] hover:scale-105 cursor-pointer text-white py-2 px-4 rounded transition flex items-center justify-center"
             >
                 Confirm Booking
             </button>

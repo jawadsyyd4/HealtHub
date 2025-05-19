@@ -106,7 +106,7 @@ const registerUser = async (req, res) => {
             <!-- Footer -->
             <footer>
               <p>If you did not request this email, please ignore it.</p>
-              <p>For any questions, contact our <a href="mailto:jawadsyyd@gmail.com">support team</a>.</p>
+              <p>For any questions, contact our <a href="mailto:healthhubt@gmail.com">support team</a>.</p>
             </footer>
           </body>
         </html>
@@ -238,201 +238,142 @@ const bookAppointment = async (req, res) => {
   try {
     const { userId, docId, slotDate, slotTime } = req.body;
 
-    // Fetch doctor data and check availability
-    const docData = await doctorModel
-      .findById(docId)
-      .select("-password")
-      .populate("speciality"); // Populate the 'speciality' field
-
-    if (!docData.available) {
-      return res.json({ success: false, message: "Doctor not available" });
-    }
-
-    // Check if user already has an appointment at the same date and time
+    // 1. Prevent duplicate or incomplete appointments
     const existingAppointment = await appointmentModel.findOne({
       userId,
-      slotDate,
-      slotTime,
+      isCompleted: false,
+      cancelled: false,
     });
 
     if (existingAppointment) {
-      if (!existingAppointment.cancelled) {
+      return res.json({
+        success: false,
+        message:
+          "You have an unfinished appointment. Please complete or cancel it before booking a new one.",
+      });
+    }
+
+    // 2. Fetch doctor and availability info
+    const doctor = await doctorModel
+      .findById(docId)
+      .select("-password")
+      .populate("speciality");
+
+    // 3. Check doctor's unavailability (if any)
+    const doctorSchedule = await DoctorSchedule.findOne({ doctor: docId });
+
+    if (doctorSchedule?.unavailableTo) {
+      const appointmentDate = new Date(slotDate);
+      const unavailableToDate = new Date(doctorSchedule.unavailableTo);
+
+      if (appointmentDate < unavailableToDate) {
         return res.json({
           success: false,
-          message:
-            "You already have an appointment with another doctor at this time. Please cancel it before booking a new one.",
+          message: `Doctor is unavailable until ${unavailableToDate.toDateString()}. Please select a later date.`,
         });
       }
     }
 
-    let slots_booked = docData.slots_booked;
+    // 4. Prevent duplicate booking on same date/time
+    const conflictingAppointment = await appointmentModel.findOne({
+      userId,
+      slotDate,
+      slotTime,
+      cancelled: false,
+    });
 
-    // Checking if slot available
-    if (slots_booked[slotDate]) {
-      if (slots_booked[slotDate].includes(slotTime)) {
-        return res.json({ success: false, message: "Slot not available" });
-      } else {
-        slots_booked[slotDate].push(slotTime);
-      }
-    } else {
-      slots_booked[slotDate] = [];
-      slots_booked[slotDate].push(slotTime);
+    if (conflictingAppointment) {
+      return res.json({
+        success: false,
+        message:
+          "You already have an appointment at this time. Please cancel it before booking another.",
+      });
     }
 
-    // Fetch user data
-    const userData = await userModel.findById(userId).select("-password");
+    // 5. Check slot availability
+    const bookedSlots = doctor.slots_booked || {};
+    if (bookedSlots[slotDate]?.includes(slotTime)) {
+      return res.json({ success: false, message: "Slot not available" });
+    }
 
-    delete docData.slots_booked; // Remove slots_booked to avoid saving it in the appointment
+    // 6. Book the slot
+    bookedSlots[slotDate] = [...(bookedSlots[slotDate] || []), slotTime];
+    await doctorModel.findByIdAndUpdate(docId, { slots_booked: bookedSlots });
 
-    // Create the appointment data
-    const appointmentData = {
+    // 7. Get user details
+    const user = await userModel.findById(userId).select("-password");
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    // 8. Create appointment
+    const newAppointment = new appointmentModel({
       userId,
-      doctorId: docId, // Ensure docId is assigned to doctorId field
-      doctorData: docData, // Ensure the complete doctor data is passed
-      userData,
-      amount: docData.fees,
+      doctorId: docId,
+      doctorData: doctor,
+      userData: user,
+      amount: doctor.fees,
       slotTime,
       slotDate,
-      date: Date.now(), // Current timestamp
-    };
+      date: Date.now(),
+    });
 
-    // Create a new appointment
-    const newAppointment = new appointmentModel(appointmentData);
-
-    // Save the new appointment
     await newAppointment.save();
 
-    // Generate the confirmation link now that we have the appointment ID
+    // 9. Send confirmation email
     const confirmationLink = `http://localhost:4000/api/user/confirm-appointment/${newAppointment._id}`;
-
-    // Format confirmation deadline with AM/PM
-    const confirmationDeadline = newAppointment.confirmationDeadline;
-    const confirmationDate = confirmationDeadline.toLocaleDateString("en-US", {
+    const deadline = newAppointment.confirmationDeadline;
+    const formattedDate = deadline.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
-    const confirmationTime = confirmationDeadline.toLocaleTimeString("en-US", {
+    const formattedTime = deadline.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
 
-    // Send confirmation email with a link
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: userData.email,
+      to: user.email,
       subject: "Please confirm your appointment",
       html: `
-        <html>
-          <head>
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                background-color: #f9f9f9;
-                margin: 0;
-                padding: 0;
-                color: #333;
-              }
-              .container {
-                max-width: 600px;
-                margin: 0 auto;
-                background-color: #fff;
-                padding: 20px;
-                border-radius: 10px;
-                box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-              }
-              h1 {
-                text-align: center;
-                color: #C0EB6A;
-                font-size: 28px;
-              }
-              p {
-                font-size: 16px;
-                color: #555;
-                line-height: 1.6;
-              }
-              .appointment-details {
-                background-color: #f4f4f4;
-                padding: 15px;
-                border-radius: 8px;
-                margin-top: 20px;
-                font-size: 16px;
-              }
-              .appointment-details p {
-                margin: 5px 0;
-              }
-              .btn {
-                display: inline-block;
-                background-color: #C0EB6A;
-                color: white;
-                padding: 10px 20px;
-                text-decoration: none;
-                border-radius: 5px;
-                margin-top: 20px;
-                font-size: 16px;
-                text-align: center;
-              }
-              .btn:hover {
-                background-color: #45a049;
-              }
-              footer {
-                margin-top: 30px;
-                text-align: center;
-                font-size: 14px;
-                color: #777;
-              }
-              footer a {
-                color: #C0EB6A;
-                text-decoration: none;
-              }
-              footer a:hover {
-                text-decoration: underline;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <h1>Appointment Confirmation</h1>
-              <p>Dear ${userData.name},</p>
-              <p>We are happy to inform you that your appointment is scheduled for:</p>
-              <div class="appointment-details">
-                <p><strong>Date:</strong> ${slotDate.split("_").join("/")}</p>
-                <p><strong>Time:</strong> ${slotTime}</p>
-                <p><strong>Doctor:</strong> ${docData.name}</p>
-                <p><strong>Specialty:</strong> ${docData.speciality.name}</p>
-              </div>
-              <p>Please confirm your attendance by clicking the button below:</p>
-              <a href="${confirmationLink}" class="btn">Confirm Appointment</a>
-              <p><strong>Note:</strong> You must confirm your appointment before the confirmation deadline of ${confirmationDate} ${confirmationTime}.</p>
-              <footer>
-                <p>If you did not request this appointment, please disregard this email.</p>
-                <p>If you have any questions or need to reschedule, feel free to contact us.</p>
-              </footer>
-            </div>
-          </body>
-        </html>
+        <div style="font-family: Arial, sans-serif; background: #fff; padding: 20px; border-radius: 8px; color: #333;">
+          <h2 style="color: #C0EB6A;">Appointment Confirmation</h2>
+          <p>Hello ${user.name},</p>
+          <p>Your appointment is scheduled as follows:</p>
+          <ul>
+            <li><strong>Date:</strong> ${slotDate.replace(/_/g, "/")}</li>
+            <li><strong>Time:</strong> ${slotTime}</li>
+            <li><strong>Doctor:</strong> ${doctor.name} (${
+        doctor.speciality.name
+      })</li>
+          </ul>
+          <p>Please confirm your appointment by clicking the link below before <strong>${formattedDate} ${formattedTime}</strong>.</p>
+          <a href="${confirmationLink}" style="background-color: #C0EB6A; padding: 10px 15px; border-radius: 5px; color: #fff; text-decoration: none;">Confirm Appointment</a>
+          <p style="margin-top: 20px;">If you didn’t request this, please ignore this message.</p>
+        </div>
       `,
     };
 
-    // Save the updated slot bookings back to the doctor model
-    await doctorModel.findByIdAndUpdate(docId, { slots_booked });
-
-    // Send email asynchronously and return a response once done
-    transporter.sendMail(mailOptions, (err, info) => {
+    transporter.sendMail(mailOptions, (err) => {
       if (err) {
-        console.log(err);
-        return res.json({ success: false, message: "Error sending email" });
+        console.error("Email error:", err);
+        return res.json({
+          success: false,
+          message: "Failed to send confirmation email.",
+        });
       }
+
       return res.json({
         success: true,
-        message:
-          "Appointment booked! Please check your email to confirm the appointment.",
+        message: "Appointment booked! Please confirm via the email link.",
       });
     });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error("Booking error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -593,7 +534,7 @@ const paymentStripepay = async (req, res) => {
               name:
                 "Appointment Payment " +
                 "(" +
-                appointmentData.doctorData.speciality +
+                appointmentData.doctorData.speciality.name +
                 ")",
               description:
                 appointmentData.slotDate.split("-")[0] +
@@ -889,169 +830,352 @@ const resetPassword = async (req, res) => {
 
 const docMate = async (req, res) => {
   try {
-    const { message } = req.body;
+    const { specialties = [], days = [], times = [] } = req.body;
+
     const specialitiesData = await specialityModel.find();
-    const specialitiesList = specialitiesData.map(
-      (speciality) => speciality.name
+    const specialitiesMap = new Map(
+      specialitiesData.map((s) => [s.name.toLowerCase(), s])
     );
-    const foundSpeciality = specialitiesList.find((speciality) =>
-      message.toLowerCase().includes(speciality.toLowerCase())
+
+    // Filter valid specialties from input
+    const matchedSpecialties = specialties.filter((s) =>
+      specialitiesMap.has(s.toLowerCase())
     );
+
+    // Normalize days to capitalized form and filter valid days
     const daysOfWeek = [
-      { formal: "Monday", informal: ["monday", "mon"] },
-      { formal: "Tuesday", informal: ["tuesday", "tues", "tue"] },
-      { formal: "Wednesday", informal: ["wednesday", "weds", "wed"] },
-      { formal: "Thursday", informal: ["thursday", "thurs", "thu"] },
-      { formal: "Friday", informal: ["friday", "fri"] },
-      { formal: "Saturday", informal: ["saturday", "sat"] },
-      { formal: "Sunday", informal: ["sunday", "sun"] },
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
     ];
-    let foundDayFormal = null;
-    let foundDayInformal = null;
+    const normalizedDays = days
+      .map((d) => d.charAt(0).toUpperCase() + d.slice(1).toLowerCase())
+      .filter((d) => daysOfWeek.includes(d));
 
-    for (const day of daysOfWeek) {
-      if (day.informal.some((alias) => message.toLowerCase().includes(alias))) {
-        foundDayFormal = day.formal;
-        foundDayInformal = day.informal[0]; // Use the primary informal name for consistency
-        break;
-      }
-    }
+    // Normalize times to "HH:mm" 24h format (accept only first time in array)
+    // We will process all times, so let's normalize all times
+    const normalizeTime = (raw) => {
+      const match = raw.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+      if (!match) return null;
+      let [_, hourStr, minStr, ampm] = match;
+      let hour = parseInt(hourStr, 10);
+      const minutes = parseInt(minStr || "0", 10);
+      if (ampm?.toLowerCase() === "pm" && hour < 12) hour += 12;
+      if (ampm?.toLowerCase() === "am" && hour === 12) hour = 0;
+      return `${hour.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+    };
+    const normalizedTimes = times.map(normalizeTime).filter((t) => t !== null);
 
-    // Enhanced time parsing with regex (as in the previous response)
-    const timeRegex = /(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i;
-    const timeMatch = message.match(timeRegex);
-    let foundTime = null;
+    // Helper for adjacent days
+    const getAdjacentDays = (day) => {
+      const index = daysOfWeek.indexOf(day);
+      return {
+        previous: daysOfWeek[(index + 6) % 7],
+        next: daysOfWeek[(index + 1) % 7],
+      };
+    };
 
-    if (timeMatch) {
-      let hours = parseInt(timeMatch[1]);
-      const minutes = parseInt(timeMatch[2]) || 0;
-      const ampm = timeMatch[3];
+    // Function to check if doctor is available at any of given days and times
+    // Availability structure: { Monday: {start: "09:00", end: "17:00"}, ... }
+    const isAvailable = (availability, day, time) => {
+      const slot = availability[day];
+      if (!slot) return false;
+      if (!time) return true; // If no time provided, just day check
+      return slot.start <= time && slot.end >= time;
+    };
 
-      if (ampm) {
-        if (ampm.toLowerCase() === "pm" && hours < 12) {
-          hours += 12;
-        } else if (ampm.toLowerCase() === "am" && hours === 12) {
-          hours = 0; // Midnight
-        }
-      }
+    let allDoctors = [];
+    let messages = [];
 
-      const formattedHours = hours.toString().padStart(2, "0");
-      const formattedMinutes = minutes.toString().padStart(2, "0");
-      foundTime = `${formattedHours}:${formattedMinutes}`;
-    }
+    // Handle case: no specialties provided → use all specialties
+    const specialtiesToSearch =
+      matchedSpecialties.length > 0
+        ? matchedSpecialties
+        : specialitiesData.map((s) => s.name);
 
-    let doctors = [];
-    let responseMessage = "";
-    let foundDoctorDetails = null;
+    // For each specialty, find doctors and filter by days/times
+    for (const specialtyName of specialtiesToSearch) {
+      const specialtyDoc = specialitiesMap.get(specialtyName.toLowerCase());
 
-    if (!foundDayInformal || !foundTime) {
-      responseMessage = `${!foundDayInformal ? "No day" : ""} ${
-        !foundDayInformal && !foundTime ? "and" : ""
-      } ${
-        !foundTime ? "no time" : ""
-      } specified in your message. Please provide both day and time.`;
-      return res.json({ success: false, message: responseMessage });
-    }
-
-    if (foundSpeciality) {
-      const foundSpecialtyDocument = await specialityModel.findOne({
-        name: foundSpeciality,
-      });
       const availableDoctors = await doctorModel
-        .find({ speciality: foundSpecialtyDocument._id, available: true })
-        .select("_id name");
+        .find({ speciality: specialtyDoc._id, available: true })
+        .populate("speciality", "name")
+        .select("_id name image");
 
       if (availableDoctors.length === 0) {
-        responseMessage = `No available doctors found for the speciality: ${foundSpeciality}.`;
-      } else {
-        const availabilityPromises = availableDoctors.map(async (doctor) => {
+        messages.push(`No available doctors for ${specialtyName}.`);
+        continue;
+      }
+
+      // Fetch availability for all doctors in this specialty
+      const availabilityData = await Promise.all(
+        availableDoctors.map(async (doctor) => {
           try {
-            const availabilityResponse = await axios.get(
+            const { data } = await axios.get(
               `http://localhost:4000/api/user/availble-day/${doctor._id}`
             );
-            return { doctor, availability: availabilityResponse.data };
-          } catch (error) {
-            console.error(
-              `Error fetching availability for doctor ${doctor._id}:`,
-              error.message
-            );
-            return {
-              doctor,
-              availability: { success: false, availableTimes: {} },
-            };
+            return { doctor, availability: data?.availableTimes || {} };
+          } catch {
+            return { doctor, availability: {} };
           }
-        });
+        })
+      );
 
-        const doctorsWithAvailability = await Promise.all(availabilityPromises);
+      let specialtyDoctors = [];
 
-        const matchingDoctors = doctorsWithAvailability.filter(
-          ({ availability }) => {
-            if (
-              availability &&
-              availability.success &&
-              availability.availableTimes
-            ) {
-              const dayAvailability =
-                availability.availableTimes[foundDayFormal];
-              return (
-                dayAvailability &&
-                dayAvailability.start <= foundTime &&
-                dayAvailability.end >= foundTime
-              );
-            }
-            return false;
-          }
+      // Conditions based on presence of inputs:
+
+      // Condition 1: no specialties, no days, no times → already handled by specialtiesToSearch fallback to all
+      // so treat below for specialties present or not.
+
+      // Condition 1 simplified: no days, no times → all doctors from specialty
+      if (normalizedDays.length === 0 && normalizedTimes.length === 0) {
+        specialtyDoctors = availabilityData.map((d) => d.doctor);
+        messages.push(
+          `Found ${specialtyDoctors.length} doctor(s) for ${specialtyName} with no day/time filter.`
         );
+      }
 
-        if (matchingDoctors.length > 0) {
-          const doctorRatingsPromises = matchingDoctors.map(
-            async ({ doctor }) => {
-              try {
-                const { data } = await axios.get(
-                  `http://localhost:4000/api/doctor/rating/${doctor._id}`
-                );
+      // Condition 2: no days, times present
+      else if (normalizedDays.length === 0 && normalizedTimes.length > 0) {
+        // Match any time on any day
+        for (const time of normalizedTimes) {
+          const matches = availabilityData.filter(({ availability }) =>
+            Object.values(availability).some(
+              (slot) => slot.start <= time && slot.end >= time
+            )
+          );
+          specialtyDoctors.push(...matches.map((d) => d.doctor));
+          messages.push(
+            `Found ${matches.length} doctor(s) for ${specialtyName} available at time ${time} on any day.`
+          );
+        }
+        // Deduplicate after loop
+        specialtyDoctors = [
+          ...new Map(
+            specialtyDoctors.map((d) => [d._id.toString(), d])
+          ).values(),
+        ];
+      }
 
-                return {
-                  _id: doctor._id,
-                  name: doctor.name,
-                  avgRate: data.averageRating || 0,
-                };
-              } catch (err) {
-                console.error(
-                  `Failed to fetch rating for doctor ${doctor._id}:`,
-                  err.message
+      // Condition 3: days present, no times
+      else if (normalizedDays.length > 0 && normalizedTimes.length === 0) {
+        for (const day of normalizedDays) {
+          const matches = availabilityData.filter(
+            ({ availability }) => availability[day]
+          );
+          specialtyDoctors.push(...matches.map((d) => d.doctor));
+          messages.push(
+            `Found ${matches.length} doctor(s) for ${specialtyName} available on ${day}.`
+          );
+        }
+        // Deduplicate
+        specialtyDoctors = [
+          ...new Map(
+            specialtyDoctors.map((d) => [d._id.toString(), d])
+          ).values(),
+        ];
+      }
+
+      // Condition 4,7,8: days and times both present (specialties may or may not present)
+      else if (normalizedDays.length > 0 && normalizedTimes.length > 0) {
+        let foundExact = false;
+        // Try exact day + time matches first (any day + any time)
+        for (const day of normalizedDays) {
+          for (const time of normalizedTimes) {
+            const matches = availabilityData.filter(({ availability }) =>
+              isAvailable(availability, day, time)
+            );
+            if (matches.length > 0) {
+              specialtyDoctors.push(...matches.map((d) => d.doctor));
+              messages.push(
+                `Found ${matches.length} doctor(s) for ${specialtyName} on ${day} at ${time}.`
+              );
+              foundExact = true;
+            }
+          }
+        }
+        specialtyDoctors = [
+          ...new Map(
+            specialtyDoctors.map((d) => [d._id.toString(), d])
+          ).values(),
+        ];
+
+        if (!foundExact) {
+          let fallbackAdded = false;
+
+          // 1. Try adjacent days (existing fallback logic)
+          for (const day of normalizedDays) {
+            const { previous, next } = getAdjacentDays(day);
+            for (const fallbackDay of [previous, next]) {
+              for (const time of normalizedTimes) {
+                const fallbackMatches = availabilityData.filter(
+                  ({ availability }) =>
+                    isAvailable(availability, fallbackDay, time)
                 );
-                return {
-                  _id: doctor._id,
-                  name: doctor.name,
-                  avgRate: 0, // fallback
-                };
+                if (fallbackMatches.length > 0) {
+                  specialtyDoctors.push(
+                    ...fallbackMatches.map((d) => d.doctor)
+                  );
+                  messages.push(
+                    `No doctors for ${specialtyName} on ${day}, but found ${fallbackMatches.length} on adjacent day ${fallbackDay} at ${time}.`
+                  );
+                  fallbackAdded = true;
+                  break;
+                }
+              }
+              if (fallbackAdded) break;
+            }
+            if (fallbackAdded) break;
+          }
+
+          specialtyDoctors = [
+            ...new Map(
+              specialtyDoctors.map((d) => [d._id.toString(), d])
+            ).values(),
+          ];
+
+          // 2. If still none found, fallback to all doctors available on that day (any specialty)
+          if (!fallbackAdded && specialtyDoctors.length === 0) {
+            for (const day of normalizedDays) {
+              const allDocs = await doctorModel
+                .find({ available: true })
+                .populate("speciality", "name")
+                .select("_id name image");
+
+              const availabilityData = await Promise.all(
+                allDocs.map(async (doctor) => {
+                  try {
+                    const { data } = await axios.get(
+                      `http://localhost:4000/api/user/availble-day/${doctor._id}`
+                    );
+                    return { doctor, availability: data?.availableTimes || {} };
+                  } catch {
+                    return { doctor, availability: {} };
+                  }
+                })
+              );
+
+              const dayMatches = availabilityData.filter(
+                ({ availability }) => availability[day]
+              );
+              if (dayMatches.length > 0) {
+                allDoctors.push(...dayMatches.map((d) => d.doctor));
+                messages.push(
+                  `No doctors for ${specialtyName} on ${day}, but found ${dayMatches.length} other doctors available on ${day}.`
+                );
               }
             }
-          );
 
-          doctors = await Promise.all(doctorRatingsPromises);
-          responseMessage = `Found ${doctors.length} available doctor(s) for ${foundSpeciality} on ${foundDayFormal} at ${foundTime}.`;
-        } else {
-          responseMessage = `No available doctors found for the speciality: ${foundSpeciality} on ${foundDayFormal} at ${foundTime}.`;
-          doctors = [];
+            // 3. Also return doctors of this specialty on other days
+            const specialtyMatchesOtherDays = availabilityData.filter(
+              ({ doctor, availability }) => {
+                return Object.entries(availability).some(
+                  ([dayKey, slot]) =>
+                    normalizedDays.every((d) => d !== dayKey) &&
+                    doctor.speciality.name === specialtyName
+                );
+              }
+            );
+            if (specialtyMatchesOtherDays.length > 0) {
+              allDoctors.push(
+                ...specialtyMatchesOtherDays.map((d) => d.doctor)
+              );
+              messages.push(
+                `Also found ${specialtyMatchesOtherDays.length} doctor(s) with specialty ${specialtyName} available on other days.`
+              );
+            }
+          }
         }
       }
-    } else {
-      responseMessage = "No matching speciality found in your message.";
-      doctors = [];
+
+      // Condition 5,6: specialties present but no days
+      else if (matchedSpecialties.length > 0 && normalizedDays.length === 0) {
+        // If times present, filter by any day matching times
+        if (normalizedTimes.length > 0) {
+          for (const time of normalizedTimes) {
+            const matches = availabilityData.filter(({ availability }) =>
+              Object.values(availability).some(
+                (slot) => slot.start <= time && slot.end >= time
+              )
+            );
+            specialtyDoctors.push(...matches.map((d) => d.doctor));
+            messages.push(
+              `Found ${matches.length} doctor(s) for ${specialtyName} at time ${time} on any day.`
+            );
+          }
+          specialtyDoctors = [
+            ...new Map(
+              specialtyDoctors.map((d) => [d._id.toString(), d])
+            ).values(),
+          ];
+        } else {
+          // No days, no times → return all doctors in specialty (already handled in condition 1)
+          specialtyDoctors = availabilityData.map((d) => d.doctor);
+          messages.push(
+            `Found ${specialtyDoctors.length} doctor(s) for ${specialtyName} with no day/time filter.`
+          );
+        }
+      }
+
+      allDoctors.push(...specialtyDoctors);
     }
 
+    // Deduplicate all doctors
+    const uniqueDoctorsMap = new Map();
+    for (const doc of allDoctors) {
+      uniqueDoctorsMap.set(doc._id.toString(), doc);
+    }
+
+    // Fetch doctors with ratings or other details if needed
+    const finalDoctors = await fetchDoctorsWithRatings(
+      Array.from(uniqueDoctorsMap.values())
+    );
+
     return res.json({
-      success: doctors.length > 0,
-      message: responseMessage,
-      doctors, // return all matching doctors
+      success: finalDoctors.length > 0,
+      message: messages.join(" "),
+      doctors: finalDoctors,
     });
-  } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+  } catch (err) {
+    console.error("Error in docMate:", err);
+    res.status(500).json({ success: false, message: "Internal server error." });
   }
 };
+
+// Utility function to get ratings for doctors
+async function fetchDoctorsWithRatings(doctorList) {
+  return Promise.all(
+    doctorList.map(async (doctor) => {
+      try {
+        const { data } = await axios.get(
+          `http://localhost:4000/api/doctor/rating/${doctor._id}`
+        );
+        return {
+          _id: doctor._id,
+          name: doctor.name,
+          iamge: doctor.image,
+          speciality: doctor.speciality.name,
+          avgRate: data.averageRating || 0,
+        };
+      } catch {
+        return {
+          _id: doctor._id,
+          name: doctor.name,
+          iamge: doctor.image,
+          speciality: doctor.speciality.name,
+          avgRate: 0,
+        };
+      }
+    })
+  );
+}
 
 export {
   registerUser,

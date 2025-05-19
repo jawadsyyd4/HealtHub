@@ -11,13 +11,31 @@ import LoadingComponent from '../components/LoadingComponent';
 import { FaRegCalendarCheck } from 'react-icons/fa';
 
 const Appoitment = () => {
-
+    // Default values
+    const defaultSlotIndex = -1;
+    const defaultSlotIndex2 = -1;
     const { docId } = useParams();
     const { doctors, currencySymbol, backendUrl, token, getDoctorsData } = useContext(AppContext);
     const navigate = useNavigate()
     const [docSlots, setDocSlots] = useState(null);
-    const [slotIndex, setSlotIndex] = useState(-1)
-    const [slotIndex2, setSlotIndex2] = useState(-1)
+    // Load pendingAppointment from localStorage once on component mount
+    const [slotIndex, setSlotIndex] = useState(() => {
+        try {
+            const pending = JSON.parse(localStorage.getItem('pendingAppointment'));
+            return pending && typeof pending.slotIndex === 'number' ? pending.slotIndex : defaultSlotIndex;
+        } catch {
+            return defaultSlotIndex;
+        }
+    });
+
+    const [slotIndex2, setSlotIndex2] = useState(() => {
+        try {
+            const pending = JSON.parse(localStorage.getItem('pendingAppointment'));
+            return pending && typeof pending.slotIndex2 === 'number' ? pending.slotIndex2 : defaultSlotIndex2;
+        } catch {
+            return defaultSlotIndex2;
+        }
+    });
 
     const [bookingDate, setBookingDate] = useState(false)
     const [bookingTime, setBookingTime] = useState(false)
@@ -111,51 +129,65 @@ const Appoitment = () => {
         return `${hours}:${minutes}`;
     };
 
-    const bookAppointment = async (slotDate, slotTime) => {
+    const bookAppointment = async (slotDate, slotTime, docId, slotIndex, slotIndex2) => {
+        const token = localStorage.getItem("token");
+
         if (!token) {
-            toast.warn('Login to book appointment')
-            return navigate('/login')
+            // Save all needed info in localStorage for post-login restore
+            const appointmentData = {
+                slotDate,
+                slotTime,
+                docId,
+                slotIndex,
+                slotIndex2,
+            };
+            console.log(appointmentData)
+            localStorage.setItem("pendingAppointment", JSON.stringify(appointmentData));
+
+            toast.warn("Login to book appointment");
+            return navigate("/login");
         }
+
         setLoading(true); // Start loading
         try {
-            function convert24To12Hour(slotTime) {
-                let [hours, minutes] = slotTime.split(":").map(Number);
+            function convert24To12Hour(time24) {
+                let [hours, minutes] = time24.split(":").map(Number);
                 const period = hours >= 12 ? "PM" : "AM";
-
-                hours = hours % 12 || 12; // convert "00" to "12"
-                return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")} ${period}`;
+                hours = hours % 12 || 12;
+                return `${hours.toString().padStart(2, "0")}:${minutes
+                    .toString()
+                    .padStart(2, "0")} ${period}`;
             }
 
             const formattedTime = convert24To12Hour(slotTime);
 
             const { data } = await axios.post(
-                backendUrl + '/api/user/book-appointment',
+                backendUrl + "/api/user/book-appointment",
                 {
                     docId,
                     slotDate,
-                    slotTime: formattedTime  // ✅ pass converted time properly
+                    slotTime: formattedTime,
                 },
                 {
-                    headers: { token }
+                    headers: { token },
                 }
             );
 
-
             if (data.success) {
-                toast.success(data.message)
-                getDoctorsData()
-                navigate('/my-appointments')
+                toast.success(data.message);
+                getDoctorsData();
+                navigate("/my-appointments");
             } else {
-                toast.error(data.message)
+                toast.error(data.message);
             }
-
         } catch (error) {
             console.log(error);
-            toast.error(error.message)
+            toast.error(error.message);
         } finally {
             setLoading(false); // Stop loading
         }
-    }
+    };
+
 
     const getDoctorAVGRating = async (docId) => {
         try {
@@ -212,6 +244,14 @@ const Appoitment = () => {
         getDoctorAVGRating(docId)
     }, [doctors, docId]);
 
+    useEffect(() => {
+        if (localStorage.getItem('pendingAppointment')) {
+            localStorage.removeItem('pendingAppointment');
+        }
+        if (localStorage.getItem('restoredAppointment')) {
+            localStorage.removeItem('restoredAppointment');
+        }
+    }, []);
     return docInfo && (
         <div>
             {/* DOCTOR DETAILS */}
@@ -289,7 +329,7 @@ const Appoitment = () => {
                                 {/* <button onClick={() => bookAppointment(bookingDate, bookingTime)} disabled={loading} className='bg-[#C0EB6A] text-white text-sm font-light px-14 py-3 rounded-full my-6 cursor-pointer hover:scale-105'>{loading ? 'Booking...' : 'Book Appointment'}</button> */}
                                 {loading && <LoadingComponent icon={<FaRegCalendarCheck className="text-[#C0EB6A] text-4xl mb-4 animate-bounce" />} message="Scheduling your appointment..." />}
                                 <button
-                                    onClick={() => bookAppointment(bookingDate, bookingTime)}
+                                    onClick={() => bookAppointment(bookingDate, bookingTime, docId, slotIndex, slotIndex2)}
                                     className='bg-[#C0EB6A] text-white text-sm font-light px-14 py-3 rounded-full my-6 cursor-pointer hover:scale-105'
                                     disabled={loading}
                                 >

@@ -8,6 +8,7 @@ import doctorRouter from "./routes/doctorRoute.js";
 import userRouter from "./routes/userRoute.js";
 import specialityRouter from "./routes/specialityRoute.js";
 import cancelExpiredAppointments from "./jobs/appointmentCleaner.js";
+import reactivateUnavailableDoctors from "./jobs/reactivateDoctors.js";
 
 // app config
 const app = express();
@@ -28,7 +29,7 @@ app.use("/api/user", userRouter);
 app.use("/api/speciality", specialityRouter);
 
 cancelExpiredAppointments();
-
+reactivateUnavailableDoctors();
 // localhost:4000/api/admin
 
 app.get("/", (req, res) => {

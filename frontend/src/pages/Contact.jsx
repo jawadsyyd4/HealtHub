@@ -13,7 +13,7 @@ const Contact = () => {
                 <div className="flex flex-col justify-center items-start gap-6">
                     <p className='font-semibold text-lg text-gray-600'>Contact Us</p>
                     <p className='text-gray-500'>Feel free to reach out for inquiries, support, or more information.</p>
-                    <p className='text-gray-500'>Tel: 81-036923 <br /> Email: jawadsyyd@gmail.com</p>
+                    <p className='text-gray-500'>Tel: 81-036923 <br /> Email: healthhubt@gmail.com</p>
                     <button
                         onClick={() => document.getElementById("contactSection").scrollIntoView({ behavior: "smooth" })}
                         className='border cursor-pointer border-black px-8 py-4 text-sm hover:bg-black hover:text-white transition-all duration-500'>
