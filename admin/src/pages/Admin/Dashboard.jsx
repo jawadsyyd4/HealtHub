@@ -41,7 +41,7 @@ const Dashboard = () => {
     return (
         <div className="m-2 space-y-4 w-screen">
             {/* Stats */}
-            <div className="flex flex-wrap gap-3 justify-start">
+            <div className="flex flex-wrap gap-3 justify-center">
                 <StatCard label="Doctors" count={dashData.doctors} icon={assets.doctor_icon} />
                 <StatCard label="Appointments" count={dashData.appointments} icon={assets.appointments_icon} />
                 <StatCard label="Patients" count={dashData.patients} icon={assets.patients_icon} />
@@ -80,25 +80,47 @@ const Dashboard = () => {
                 </div>
             </section>
 
-            {/* Temporarily Unavailable & Max Patients (Side-by-Side) */}
-            {(dashData.doctorsTemporarilyUnavailable?.length > 0 || dashData.maxPatientsDoctors?.length > 0) && (
+            {/* Doctors with Most Cancelled Appointments */}
+            {dashData.mostCancelledDoctors?.length > 0 && (
+                <section className="bg-white rounded-lg shadow p-4">
+                    <h2 className="text-lg font-semibold mb-3 text-[#C0EB6A]">
+                        Doctors with Most Cancelled Appointments
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {dashData.mostCancelledDoctors.map(({ doctor, cancelledCount }) => (
+                            <DoctorCard
+                                key={doctor._id}
+                                doctor={doctor}
+                                label="Cancelled Appointments"
+                                value={cancelledCount}
+                            />
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {/* No Appointments This Week & Max Patients (Side-by-Side) */}
+            {(dashData.doctorsNoAppointmentsThisWeek?.length > 0 || dashData.maxPatientsDoctors?.length > 0) && (
                 <section className="bg-white rounded-lg shadow p-4">
                     <div className="flex flex-col md:flex-row">
-                        {/* Doctors Temporarily Unavailable */}
-                        {dashData.doctorsTemporarilyUnavailable?.length > 0 && (
+
+                        {/* Doctors with No Appointments This Week */}
+                        {dashData.doctorsNoAppointmentsThisWeek?.length > 0 && (
                             <div className="flex-1 md:pr-6 md:border-r md:border-gray-300 mb-6 md:mb-0">
-                                <h2 className="text-lg font-semibold mb-3 text-[#C0EB6A]">Doctors Temporarily Unavailable</h2>
-                                <ul className="list-disc list-inside space-y-1 text-gray-700 text-sm">
-                                    {dashData.doctorsTemporarilyUnavailable.map(({ doctor, unavailableTo }) => (
-                                        <li key={doctor._id}>
-                                            {doctor.name} – until {new Date(unavailableTo).toLocaleString()}
-                                        </li>
-                                    ))}
-                                </ul>
+                                <h2 className="text-lg font-semibold mb-3 text-[#C0EB6A]">
+                                    Doctors with No Appointments This Week
+                                </h2>
+                                <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                                    <ul className="list-disc list-inside space-y-1 text-gray-700 text-sm">
+                                        {dashData.doctorsNoAppointmentsThisWeek.map((doctor) => (
+                                            <li key={doctor._id} className="pl-1">{doctor.name}</li>
+                                        ))}
+                                    </ul>
+                                </div>
                             </div>
                         )}
 
-                        {/* Doctors with Maximum Patients */}
+                        {/* Doctors with Maximum Number of Patients */}
                         {dashData.maxPatientsDoctors?.length > 0 && (
                             <div className="flex-1 md:pl-6">
                                 <h2 className="text-lg font-semibold mb-3 text-[#C0EB6A]">Doctors with Maximum Number of Patients</h2>
@@ -118,42 +140,49 @@ const Dashboard = () => {
                 </section>
             )}
 
+            {/* Temporarily Unavailable & Min Rated (Side-by-Side) */}
+            <section className="bg-white rounded-lg shadow p-4">
+                <div className="flex flex-col md:flex-row">
 
-            {/* Min Rated & No Appointments This Week (Side-by-Side) */}
-            {(dashData.minRatedDoctors?.length > 0 || dashData.doctorsNoAppointmentsThisWeek?.length > 0) && (
-                <section className="bg-white rounded-lg shadow p-4">
-                    <div className="flex flex-col md:flex-row">
-                        {/* Doctors with Minimum Average Rating */}
-                        {dashData.minRatedDoctors?.length > 0 && (
-                            <div className="flex-1 md:pr-6 md:border-r md:border-gray-300 mb-6 md:mb-0">
-                                <h2 className="text-lg font-semibold mb-3 text-[#C0EB6A]">Doctors with Minimum Average Rating</h2>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {dashData.minRatedDoctors.map(({ doctor, averageRating }) => (
-                                        <DoctorCard
-                                            key={doctor._id}
-                                            doctor={doctor}
-                                            label="Avg. Rating"
-                                            value={averageRating.toFixed(2)}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Doctors with No Appointments This Week */}
-                        {dashData.doctorsNoAppointmentsThisWeek?.length > 0 && (
-                            <div className="flex-1 md:pl-6">
-                                <h2 className="text-lg font-semibold mb-3 text-[#C0EB6A]">Doctors with No Appointments This Week</h2>
-                                <ul className="list-disc list-inside space-y-1 text-gray-700 text-sm">
-                                    {dashData.doctorsNoAppointmentsThisWeek.map((doctor) => (
-                                        <li key={doctor._id}>{doctor.name}</li>
-                                    ))}
-                                </ul>
-                            </div>
+                    {/* Doctors Temporarily Unavailable */}
+                    <div className="flex-1 md:pr-6 md:border-r md:border-gray-300 mb-6 md:mb-0">
+                        <h2 className="text-lg font-semibold mb-3 text-[#C0EB6A]">Doctors Temporarily Unavailable</h2>
+                        {dashData.doctorsTemporarilyUnavailable?.length > 0 ? (
+                            <ul className="list-disc list-inside space-y-1 text-gray-700 text-sm">
+                                {dashData.doctorsTemporarilyUnavailable.map(({ doctor, unavailableTo }) => (
+                                    <li key={doctor._id}>
+                                        {doctor.name} – until {new Date(unavailableTo).toLocaleString()}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-sm text-gray-500">No unavailable doctors at the moment.</p>
                         )}
                     </div>
-                </section>
-            )}
+
+                    {/* Doctors with Minimum Average Rating */}
+                    <div className="flex-1 md:pl-6">
+                        <h2 className="text-lg font-semibold mb-3 text-[#C0EB6A]">
+                            Doctors with Minimum Average Rating
+                        </h2>
+                        {dashData.minRatedDoctors?.length > 0 &&
+                            dashData.minRatedDoctors[0].averageRating > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {dashData.minRatedDoctors.map(({ doctor, averageRating }) => (
+                                    <DoctorCard
+                                        key={doctor._id}
+                                        doctor={doctor}
+                                        label="Avg. Rating"
+                                        value={averageRating.toFixed(2)}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-gray-500">No doctors with ratings available.</p>
+                        )}
+                    </div>
+                </div>
+            </section>
 
 
         </div>

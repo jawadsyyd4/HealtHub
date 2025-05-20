@@ -669,7 +669,8 @@ const getDocSlots = async (req, res) => {
       });
     }
     const availableTimes = doctorSchedule.availableTimes;
-    res.json({ success: true, availableTimes });
+    const unavailableTo = doctorSchedule.unavailableTo;
+    res.json({ success: true, availableTimes, unavailableTo });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
@@ -904,13 +905,70 @@ const docMate = async (req, res) => {
       const specialtyDoc = specialitiesMap.get(specialtyName.toLowerCase());
 
       const availableDoctors = await doctorModel
-        .find({ speciality: specialtyDoc._id, available: true })
+        .find({ speciality: specialtyDoc._id })
         .populate("speciality", "name")
         .select("_id name image");
 
       if (availableDoctors.length === 0) {
         messages.push(`No available doctors for ${specialtyName}.`);
-        continue;
+
+        // Fallback: if day or time is provided, try all other specialties
+        if (normalizedDays.length > 0 || normalizedTimes.length > 0) {
+          const allFallbackDoctors = await doctorModel
+            .find({})
+            .populate("speciality", "name")
+            .select("_id name image");
+
+          const fallbackAvailabilityData = await Promise.all(
+            allFallbackDoctors.map(async (doctor) => {
+              try {
+                const { data } = await axios.get(
+                  `http://localhost:4000/api/user/availble-day/${doctor._id}`
+                );
+                return { doctor, availability: data?.availableTimes || {} };
+              } catch {
+                return { doctor, availability: {} };
+              }
+            })
+          );
+
+          let matchedFallbackDoctors = [];
+
+          // Match any doctor available on any of the requested days/times
+          for (const day of normalizedDays.length > 0
+            ? normalizedDays
+            : daysOfWeek) {
+            for (const time of normalizedTimes.length > 0
+              ? normalizedTimes
+              : [""]) {
+              const fallbackMatches = fallbackAvailabilityData.filter(
+                ({ availability }) => isAvailable(availability, day, time)
+              );
+              matchedFallbackDoctors.push(
+                ...fallbackMatches.map((d) => d.doctor)
+              );
+              if (fallbackMatches.length > 0) {
+                messages.push(
+                  `Found ${
+                    fallbackMatches.length
+                  } fallback doctor(s) on ${day}${
+                    time ? " at " + time : ""
+                  } in other specialties.`
+                );
+              }
+            }
+          }
+
+          // Deduplicate and add to allDoctors
+          const fallbackUnique = [
+            ...new Map(
+              matchedFallbackDoctors.map((d) => [d._id.toString(), d])
+            ).values(),
+          ];
+          allDoctors.push(...fallbackUnique);
+        }
+
+        continue; // Skip rest of current specialty since no doctors found
       }
 
       // Fetch availability for all doctors in this specialty

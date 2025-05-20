@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 // eslint-disable-next-line no-unused-vars
 import React from 'react'
 import { useContext } from 'react'
@@ -12,6 +13,17 @@ const DoctorDashboard = () => {
 
     const { currency, slotDateFormat } = useContext(AppContext)
 
+    const StatCard = ({ label, count, icon, countClass = "text-gray-700" }) => (
+        <div className="flex items-center gap-4 bg-white p-5 min-w-[180px] rounded-lg border-2 border-gray-200 shadow hover:shadow-lg cursor-pointer transition-transform hover:scale-105">
+            <img className="w-14" src={icon} alt={label} />
+            <div>
+                <p className={`text-2xl font-semibold ${countClass}`}>{count}</p>
+                <p className="text-gray-500">{label}</p>
+            </div>
+        </div>
+    );
+
+
     useEffect(() => {
         if (dToken) {
             getDashData()
@@ -19,71 +31,98 @@ const DoctorDashboard = () => {
     }, [dToken])
 
     return dashData && (
-        <div className='m-5'>
-            <div className="flex flex-wrap gap-3">
-
-                <div className="flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all">
-                    <img className='w-14' src={assets.earning_icon} alt="" />
-                    <div className="">
-                        <p className='text-xl font-semibold text-gray-600'>{currency} {dashData.earnings}</p>
-                        <p className='text-gray-400'>Earnings</p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all">
-                    <img className='w-14' src={assets.appointments_icon} alt="" />
-                    <div className="">
-                        <p className='text-xl font-semibold text-gray-600'>{dashData.appointments}</p>
-                        <p className='text-gray-400'>Appointments</p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all">
-                    <img className='w-14' src={assets.patients_icon} alt="" />
-                    <div className="">
-                        <p className='text-xl font-semibold text-gray-600'>{dashData.patients}</p>
-                        <p className='text-gray-400'>Patients</p>
-                    </div>
-                </div>
-
+        <div className="m-5 w-screen">
+            {/* Stats */}
+            <div className="flex flex-wrap gap-3 justify-center">
+                <StatCard
+                    label="Earnings"
+                    count={`${currency} ${dashData.earnings}`}
+                    icon={assets.earning_icon}
+                />
+                <StatCard
+                    label="Appointments"
+                    count={dashData.appointments}
+                    icon={assets.appointments_icon}
+                />
+                <StatCard
+                    label="Patients"
+                    count={dashData.patients}
+                    icon={assets.patients_icon}
+                />
+                <StatCard
+                    label="Cancelled"
+                    count={dashData.cancelledAppointments}
+                    icon={assets.cancel_icon}
+                    countClass="text-red-600"
+                />
+                <StatCard
+                    label="Completed"
+                    count={dashData.completedAppointments}
+                    icon={assets.tick_icon}
+                    countClass="text-green-600"
+                />
             </div>
 
-            <div className="bg-white">
+            {/* Latest Bookings */}
+            <section className="bg-white mt-12 rounded-lg shadow-md border border-gray-200 max-w-full">
+                <header className="flex items-center gap-3 px-6 py-4 rounded-t-lg border-b border-gray-300 bg-gray-50">
+                    <img src={assets.list_icon} alt="List Icon" className="w-6 h-6" />
+                    <h2 className="font-semibold text-gray-800 text-xl">Latest Bookings</h2>
+                </header>
 
-                <div className="flex items-center gap-2.5 px-4 py-4 mt-10 rounded-t border">
-                    <img src={assets.list_icon} alt="" />
-                    <p className='font-semibold'>Latest Bookings</p>
-                </div>
-
-                <div className="pt-4 border border-t-0">
-                    {
-                        dashData.latestAppointments.map((item, index) => (
-                            <div className="flex items-center px-6 py-3 gap-3 hover:bg-gray-100" key={index}>
-                                <img className='rounded-full w-10' src={item.userData ? item.userData.image : assets.upload_area} alt="" />
-                                <div className='flex-1 text-sm'>
-                                    <p className='text-gray-800 font-medium'>{item.userData ? item.userData.name : item.guestPatientId.name}</p>
-                                    <p className='text-gray-600'>{slotDateFormat(item.slotDate)}</p>
-                                </div>
-                                {
-                                    item.cancelled
-                                        ? <p className='text-red-400 text-sm font-medium'>Cancelled</p>
-                                        : item.isCompleted
-                                            ? <p className='text-green-500 text-sm font-medium'>Completed</p>
-                                            :
-                                            <div className="flex">
-                                                <img onClick={() => { cancelAppointment(item._id) }} className='w-10 cursor-pointer' src={assets.cancel_icon} alt="" />
-                                                <img onClick={() => { completeAppointment(item._id) }} className='w-10 cursor-pointer' src={assets.tick_icon} alt="" />
-                                            </div>
-                                }
+                <div className="pt-4 max-h-[420px] overflow-y-auto">
+                    {dashData.latestAppointments.map((item, index) => (
+                        <article
+                            key={index}
+                            className="flex items-center px-6 py-3 gap-5 hover:bg-gray-50 border-b last:border-b-0 transition-colors duration-200"
+                        >
+                            <img
+                                className="rounded-full w-12 h-12 object-cover border border-gray-200"
+                                src={item.userData ? item.userData.image : assets.upload_area}
+                                alt={item.userData ? item.userData.name : item.guestPatientId.name}
+                                loading="lazy"
+                            />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-gray-900 font-semibold truncate">
+                                    {item.userData ? item.userData.name : item.guestPatientId.name}
+                                </p>
+                                <p className="text-gray-500 text-sm whitespace-nowrap">
+                                    {slotDateFormat(item.slotDate)}
+                                </p>
                             </div>
-                        ))
-                    }
+
+                            {item.cancelled ? (
+                                <span className="text-red-600 text-sm font-semibold">Cancelled</span>
+                            ) : item.isCompleted ? (
+                                <span className="text-green-600 text-sm font-semibold">Completed</span>
+                            ) : (
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={() => cancelAppointment(item._id)}
+                                        className="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 transition"
+                                        aria-label="Cancel appointment"
+                                        title="Cancel Appointment"
+                                    >
+                                        <img src={assets.cancel_icon} alt="Cancel" className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => completeAppointment(item._id)}
+                                        className="w-8 h-8 flex items-center justify-center rounded-full bg-green-100 hover:bg-green-200 transition"
+                                        aria-label="Complete appointment"
+                                        title="Complete Appointment"
+                                    >
+                                        <img src={assets.tick_icon} alt="Complete" className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            )}
+                        </article>
+                    ))}
                 </div>
-
-            </div>
-
+            </section>
         </div>
-    )
+    );
+
+
 }
 
 export default DoctorDashboard

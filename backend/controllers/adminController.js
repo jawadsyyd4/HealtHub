@@ -210,26 +210,44 @@ const adminDashboard = async (req, res) => {
     const users = await userModel.find({});
     const appointments = await appointmentModel.find({});
 
-    // 1. Get average rating for each doctor via API
-    const doctorRatings = await Promise.all(
-      doctors.map(async (doctor) => {
-        try {
-          const response = await axios.get(
-            `http://localhost:4000/api/doctor/rating/${doctor._id}`
-          );
+    // 1. Get rating counts and averages for doctors who have at least one rating
+    // Aggregate ratings to get average and count per doctor
+    const ratingsAggregation = await ratingModel.aggregate([
+      {
+        $group: {
+          _id: "$doctorId",
+          averageRating: { $avg: "$rating" },
+          totalRatings: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Create a map for quick lookup by doctorId
+    const ratingMap = new Map();
+    ratingsAggregation.forEach(({ _id, averageRating, totalRatings }) => {
+      ratingMap.set(_id.toString(), { averageRating, totalRatings });
+    });
+
+    // Filter doctors that have rating documents and build rating info
+    const doctorRatings = doctors
+      .map((doctor) => {
+        const ratingInfo = ratingMap.get(doctor._id.toString());
+        if (ratingInfo && ratingInfo.totalRatings > 0) {
           return {
             doctor,
-            averageRating: response.data.averageRating || 0,
+            averageRating: ratingInfo.averageRating,
           };
-        } catch {
-          return { doctor, averageRating: 0 };
         }
+        return null; // skip doctors with no ratings
       })
-    );
+      .filter(Boolean);
 
+    // Calculate minimum rating from doctors with at least one rating
     const minRatingValue = Math.min(
       ...doctorRatings.map((d) => d.averageRating)
     );
+
+    // Get doctors that have the minimum rating
     const minRatedDoctors = doctorRatings.filter(
       (d) => d.averageRating === minRatingValue
     );
@@ -276,7 +294,6 @@ const adminDashboard = async (req, res) => {
     const doctorsNoAppointmentsThisWeek = doctors.filter(
       (doc) => !doctorsWithAppointmentsThisWeek.has(doc._id.toString())
     );
-
     // 4. Doctor(s) with most cancelled appointments
     const cancelCounts = {};
     appointments.forEach(({ doctorId, cancelled }) => {
@@ -308,7 +325,6 @@ const adminDashboard = async (req, res) => {
       })
     );
 
-    // ✅ Final dashboard data
     const dashData = {
       doctors: doctors.length,
       patients: users.length,

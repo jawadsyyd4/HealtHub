@@ -188,16 +188,20 @@ const doctorDashboard = async (req, res) => {
     });
 
     let earnings = 0;
+    let cancelledAppointments = 0;
+    let completedAppointments = 0;
+    let patients = [];
 
     appointments.forEach((item) => {
       if (item.isCompleted) {
         earnings += item.amount;
+        completedAppointments++;
       }
-    });
 
-    let patients = [];
+      if (item.cancelled) {
+        cancelledAppointments++;
+      }
 
-    appointments.forEach((item) => {
       const id = item.userId || item.guestPatientId?._id;
       if (id && !patients.includes(id.toString())) {
         patients.push(id.toString());
@@ -208,6 +212,8 @@ const doctorDashboard = async (req, res) => {
       earnings,
       appointments: appointments.length,
       patients: patients.length,
+      cancelledAppointments,
+      completedAppointments,
       latestAppointments: appointments.slice(-5).reverse(), // last 5, reversed for latest
     };
 
@@ -238,6 +244,7 @@ const updateDoctorProfile = async (req, res) => {
   try {
     const { doctorId, fees, address, available, unavailableTo } = req.body;
 
+    // Fetch doctor
     const docData = await doctorModel.findById(doctorId).populate("speciality");
     if (!docData) {
       return res
@@ -245,19 +252,30 @@ const updateDoctorProfile = async (req, res) => {
         .json({ success: false, message: "Doctor not found" });
     }
 
-    // Update availability
+    // Handle availability status change
     if (docData.available !== available) {
       await doctorModel.findByIdAndUpdate(doctorId, { available });
 
       if (!available && unavailableTo) {
         const unavailableDate = new Date(unavailableTo);
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0); // Normalize to midnight for date-only comparison
+
         if (isNaN(unavailableDate)) {
-          return res
-            .status(400)
-            .json({ success: false, message: "Invalid unavailableTo date." });
+          return res.json({
+            success: false,
+            message: "Invalid unavailableTo date.",
+          });
         }
 
-        // Set unavailableTo date
+        if (unavailableDate < currentDate) {
+          return res.json({
+            success: false,
+            message: "unavailableTo date cannot be in the past.",
+          });
+        }
+
+        // Update doctor schedule
         await DoctorSchedule.findOneAndUpdate(
           { doctor: doctorId },
           { unavailableTo: unavailableDate },
@@ -266,10 +284,10 @@ const updateDoctorProfile = async (req, res) => {
 
         const unavailableDateStr = unavailableDate.toISOString().split("T")[0];
 
-        // Cancel appointments before that date
+        // Cancel upcoming appointments
         const appointmentsToCancel = await appointmentModel
           .find({
-            doctorId: doctorId,
+            doctorId,
             cancelled: false,
             slotDate: { $lt: unavailableDateStr },
           })
@@ -281,6 +299,7 @@ const updateDoctorProfile = async (req, res) => {
             appointment.isCompleted = false;
             await appointment.save();
 
+            // Update slots_booked
             const slotDateKey = appointment.slotDate;
             if (docData.slots_booked[slotDateKey]) {
               docData.slots_booked[slotDateKey] = docData.slots_booked[
@@ -294,6 +313,7 @@ const updateDoctorProfile = async (req, res) => {
               });
             }
 
+            // Notify patient
             const patientEmail =
               appointment.userData?.email || appointment.guestPatientId?.email;
             const patientName =
@@ -318,7 +338,7 @@ const updateDoctorProfile = async (req, res) => {
         await Promise.all(appointmentUpdates);
       }
 
-      // If doctor is now available, clear unavailableTo
+      // If doctor is now available, clear the unavailableTo field
       if (available) {
         await DoctorSchedule.findOneAndUpdate(
           { doctor: doctorId },
@@ -327,7 +347,7 @@ const updateDoctorProfile = async (req, res) => {
       }
     }
 
-    // Update other profile fields
+    // Update fees and address
     await doctorModel.findByIdAndUpdate(doctorId, { fees, address });
 
     res.json({
