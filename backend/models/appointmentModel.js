@@ -23,7 +23,7 @@ const appointmentSchema = new mongoose.Schema({
     required: true,
     default: function () {
       const now = new Date();
-      return new Date(now.getTime() + 14 * 60 * 60 * 1000); // Default is 14 hours from now
+      return new Date(now.getTime() + 5 * 60 * 60 * 1000); // Default is 14 hours from now
     },
   }, // Deadline to confirm within 14 hours
 });

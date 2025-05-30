@@ -139,9 +139,9 @@ const AddDoctor = () => {
                     <label htmlFor="doc-img">
                         {
                             docInfo ?
-                                <img className='w-16 bg-gray-100 rounded-full cursor-pointer' src={docImg ? URL.createObjectURL(docImg) : docInfo.image} alt="" />
+                                <img className='w-16 bg-gray-100 rounded-full cursor-pointer' src={docImg ? URL.createObjectURL(docImg) : docInfo.image} loading='lazy' alt="" />
                                 :
-                                <img className='w-16 bg-gray-100 rounded-full cursor-pointer' src={docImg ? URL.createObjectURL(docImg) : assets.upload_area} alt="" />
+                                <img className='w-16 bg-gray-100 rounded-full cursor-pointer' src={docImg ? URL.createObjectURL(docImg) : assets.upload_area} loading='lazy' alt="" />
                         }
                     </label>
                     <input onChange={(e) => setDocImg(e.target.files[0])} type="file" id='doc-img' hidden />

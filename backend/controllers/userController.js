@@ -211,6 +211,32 @@ const updateProfile = async (req, res) => {
       return res.json({ success: false, message: "Mising details" });
     }
 
+    // Check if phone is all digits and 8 characters long
+    const isNumeric = /^\d{8}$/.test(phone);
+
+    // Valid Lebanese mobile number prefixes
+    const validLebanesePrefixes = [
+      "03",
+      "70",
+      "71",
+      "76",
+      "78",
+      "79",
+      "81",
+      "82",
+    ];
+    const hasValidPrefix = validLebanesePrefixes.some((prefix) =>
+      phone.startsWith(prefix)
+    );
+
+    // Final validation
+    if (!isNumeric || !hasValidPrefix) {
+      return res.json({
+        success: false,
+        message: "Phone number must be a valid 8-digit Lebanese number",
+      });
+    }
+
     await userModel.findByIdAndUpdate(userId, {
       name,
       phone,
@@ -296,17 +322,13 @@ const bookAppointment = async (req, res) => {
       return res.json({ success: false, message: "Slot not available" });
     }
 
-    // 6. Book the slot
-    bookedSlots[slotDate] = [...(bookedSlots[slotDate] || []), slotTime];
-    await doctorModel.findByIdAndUpdate(docId, { slots_booked: bookedSlots });
-
-    // 7. Get user details
+    // 6. Get user details
     const user = await userModel.findById(userId).select("-password");
     if (!user) {
       return res.json({ success: false, message: "User not found" });
     }
 
-    // 8. Create appointment
+    // 7. Create the appointment object but don't save yet
     const newAppointment = new appointmentModel({
       userId,
       doctorId: docId,
@@ -318,9 +340,7 @@ const bookAppointment = async (req, res) => {
       date: Date.now(),
     });
 
-    await newAppointment.save();
-
-    // 9. Send confirmation email
+    // 8. Prepare confirmation email
     const confirmationLink = `http://localhost:4000/api/user/confirm-appointment/${newAppointment._id}`;
     const deadline = newAppointment.confirmationDeadline;
     const formattedDate = deadline.toLocaleDateString("en-US", {
@@ -357,14 +377,21 @@ const bookAppointment = async (req, res) => {
       `,
     };
 
-    transporter.sendMail(mailOptions, (err) => {
+    // 9. Send confirmation email, then save appointment & update doctor slots only if email succeeds
+    transporter.sendMail(mailOptions, async (err) => {
       if (err) {
         console.error("Email error:", err);
         return res.json({
           success: false,
-          message: "Failed to send confirmation email.",
+          message: "Failed to send confirmation email. Appointment not booked.",
         });
       }
+
+      // Email sent successfully => update slots_booked and save appointment
+      bookedSlots[slotDate] = [...(bookedSlots[slotDate] || []), slotTime];
+      await doctorModel.findByIdAndUpdate(docId, { slots_booked: bookedSlots });
+
+      await newAppointment.save();
 
       return res.json({
         success: true,

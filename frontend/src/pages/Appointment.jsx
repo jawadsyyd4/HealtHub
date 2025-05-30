@@ -324,9 +324,9 @@ const Appoitment = () => {
                                                         setSlotIndex(index);
                                                         setBookingDate(date);
                                                     }}
-                                                    className={`min-w-[80px] border rounded-xl py-4 text-center transition-all ${slotIndex === index
-                                                            ? 'bg-[#C0EB6A] text-white border-[#C0EB6A] shadow-md'
-                                                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                                                    className={`min-w-[80px] cursor-pointer border rounded-xl py-4 text-center transition-all ${slotIndex === index
+                                                        ? 'bg-[#C0EB6A] text-white border-[#C0EB6A] shadow-md'
+                                                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                                                         }`}
                                                 >
                                                     <p className="text-sm font-medium">{daysOfWeek[day]}</p>
@@ -352,9 +352,9 @@ const Appoitment = () => {
                                                         setSlotIndex2(index);
                                                         setBookingTime(time.start);
                                                     }}
-                                                    className={`px-5 py-2 rounded-lg border transition-all text-sm font-medium ${slotIndex2 === index
-                                                            ? 'bg-[#C0EB6A] text-white border-[#C0EB6A] shadow'
-                                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                                                    className={`px-5 py-2 cursor-pointer rounded-lg border transition-all text-sm font-medium ${slotIndex2 === index
+                                                        ? 'bg-[#C0EB6A] text-white border-[#C0EB6A] shadow'
+                                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
                                                         }`}
                                                 >
                                                     {time.start} - {time.end}
@@ -375,7 +375,7 @@ const Appoitment = () => {
                                 ) : (
                                     <button
                                         onClick={() => bookAppointment(bookingDate, bookingTime, docId, slotIndex, slotIndex2)}
-                                        className="bg-[#C0EB6A] text-white font-medium text-sm px-12 py-3 rounded-full shadow hover:shadow-lg hover:scale-[1.02] transition-transform"
+                                        className="bg-[#C0EB6A] cursor-pointer text-white font-medium text-sm px-12 py-3 rounded-full shadow hover:shadow-lg hover:scale-[1.02] transition-transform"
                                     >
                                         Book Appointment
                                     </button>

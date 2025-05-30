@@ -80,9 +80,29 @@ const MyProfile = () => {
                     <p className='text-blue-500'>{userData.email}</p>
                     <p className='font-medium'>Phone:</p>
                     {
-                        isEdit ? <input className='bg-gray-100 max-w-52' type="phone" value={userData.phone}
-                            onChange={(e) => { setUserData(prev => ({ ...prev, phone: e.target.value })) }} />
-                            : <p className='text-blue-400'>{userData.phone}</p>
+                        isEdit ? (
+                            <input
+                                className='bg-gray-100 max-w-52'
+                                type="tel"
+                                inputMode="numeric"
+                                value={userData.phone}
+                                onChange={(e) => {
+                                    const input = e.target.value.replace(/^(\+961(3|70|71|76|78|79|81|82)[0-9]{6})$/, '');
+                                    // Allow only 8-digit Lebanese numbers starting with valid prefixes
+                                    const validLebanesePrefixes = ['03', '70', '71', '76', '78', '79', '81', '82'];
+                                    // eslint-disable-next-line no-unused-vars
+                                    const isValid = validLebanesePrefixes.some(prefix =>
+                                        input.startsWith(prefix) && input.length === 8
+                                    );
+                                    if (input.length <= 8) {
+                                        setUserData(prev => ({ ...prev, phone: input }));
+                                    }
+                                }}
+                                placeholder="e.g. 70123456"
+                            />
+                        ) : (
+                            <p className='text-blue-400'>{userData.phone}</p>
+                        )
                     }
                     <p className='font-medium'>Address:</p>
                     {
@@ -107,15 +127,25 @@ const MyProfile = () => {
                 <div className="grid grid-cols-2 gap-y-2.5 mt-3 text-neutral-700">
                     <p className='font-medium'>Gender:</p>
                     {
-                        isEdit ? <select className='max-w-20 bg-gray-100' onChange={(e) => setUserData(prev => ({ ...prev, gender: e.target.value }))} value={userData.gender}>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                        </select>
-                            : <p className='text-gray-400'>{userData.gender}</p>
+                        isEdit ? (
+                            <select
+                                className='max-w-20 bg-gray-100'
+                                onChange={(e) => setUserData(prev => ({ ...prev, gender: e.target.value }))}
+                                value={userData.gender}
+                                required
+                            >
+                                <option value="" disabled>Select your gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        ) : (
+                            <p className='text-gray-400'>{userData.gender}</p>
+                        )
                     }
+
                     <p className='font-medium'>Birthday:</p>
                     {
-                        isEdit ? <input className='max-w-28 bg-gray-100' type="date" onChange={(e) => setUserData((prev) => ({ ...prev, dob: e.target.value }))} value={userData.dob} />
+                        isEdit ? <input className='max-w-28 bg-gray-100' type="date" onChange={(e) => setUserData((prev) => ({ ...prev, dob: e.target.value }))} value={userData.dob} required />
                             : <p className='text-gray-400'>{userData.dob}</p>
                     }
                 </div>

@@ -96,24 +96,26 @@ const DoctorDashboard = () => {
                             ) : item.isCompleted ? (
                                 <span className="text-green-600 text-sm font-semibold">Completed</span>
                             ) : (
-                                <div className="flex gap-4">
+                                <div className="flex gap-4 justify-center items-center">
                                     <button
                                         onClick={() => cancelAppointment(item._id)}
-                                        className="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 transition"
+                                        className="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 cursor-pointer transition"
                                         aria-label="Cancel appointment"
                                         title="Cancel Appointment"
                                     >
-                                        <img src={assets.cancel_icon} alt="Cancel" className="w-5 h-5" />
+                                        <img src={assets.cancel_icon} alt="Cancel" className="w-4 h-4" />
                                     </button>
+
                                     <button
                                         onClick={() => completeAppointment(item._id)}
-                                        className="w-8 h-8 flex items-center justify-center rounded-full bg-green-100 hover:bg-green-200 transition"
+                                        className="w-8 h-8 flex items-center justify-center rounded-full bg-green-100 hover:bg-green-200 cursor-pointer transition"
                                         aria-label="Complete appointment"
                                         title="Complete Appointment"
                                     >
-                                        <img src={assets.tick_icon} alt="Complete" className="w-5 h-5" />
+                                        <img src={assets.tick_icon} alt="Complete" className="w-4 h-4" />
                                     </button>
                                 </div>
+
                             )}
                         </article>
                     ))}
