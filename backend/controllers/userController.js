@@ -101,7 +101,7 @@ const registerUser = async (req, res) => {
           <body>
             <!-- Main content -->
             <h1>Verify your email</h1>
-            <p>Click <a href="http://localhost:4000/api/user/verify-email?code=${verificationCode}">here</a> to verify your email.</p>
+            <p>Click <a href="${process.env.BACKEND_URL}/api/user/verify-email?code=${verificationCode}">here</a> to verify your email.</p>
     
             <!-- Footer -->
             <footer>
@@ -151,7 +151,7 @@ const verifyEmail = async (req, res) => {
 
     user.isVerified = true;
     await user.save();
-    res.redirect("http://localhost:5173/");
+    res.redirect(`${process.env.CLIENT_URL}`);
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
@@ -341,7 +341,7 @@ const bookAppointment = async (req, res) => {
     });
 
     // 8. Prepare confirmation email
-    const confirmationLink = `http://localhost:4000/api/user/confirm-appointment/${newAppointment._id}`;
+    const confirmationLink = `${process.env.BACKEND_URL}/api/user/confirm-appointment/${newAppointment._id}`;
     const deadline = newAppointment.confirmationDeadline;
     const formattedDate = deadline.toLocaleDateString("en-US", {
       year: "numeric",
@@ -428,7 +428,7 @@ const confirmAppointment = async (req, res) => {
     await appointment.save();
 
     // Redirect to the "my appointments" page
-    res.redirect("http://localhost:5173/my-appointments");
+    res.redirect(`${process.env.CLIENT_URL}/my-appointments`);
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });
@@ -579,8 +579,8 @@ const paymentStripepay = async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: `http://localhost:4000/api/user//payment/success?appointmentId=${appointmentId}`,
-      cancel_url: `http://localhost:4000/api/user//payment/cancel?appointmentId=${appointmentId}`,
+      success_url: `${process.env.BACKEND_URL}/api/user//payment/success?appointmentId=${appointmentId}`,
+      cancel_url: `${process.env.BACKEND_URL}/api/user//payment/cancel?appointmentId=${appointmentId}`,
       metadata: { appointmentId: appointmentId },
     });
 
@@ -611,7 +611,7 @@ async function handlePaymentSuccess(req, res) {
 
     // Optionally send the updated appointment data back to the client
     // res.json({ success: true, appointment: updatedAppointment });
-    res.redirect("http://localhost:5173/my-appointments"); // Or render a success page, or redirect to a thank you page
+    res.redirect(`${process.env.CLIENT_URL}/my-appointments`); // Or render a success page, or redirect to a thank you page
 
     // res.send("Payment Successful! Thank you for your booking."); // You can also send a simple message
   } catch (error) {
@@ -726,7 +726,7 @@ const forgetPassword = async (req, res) => {
 
     // Use an environment variable for the base URL to allow flexibility between dev and prod
     const resetLink = `${
-      process.env.FRONTEND_URL || "http://localhost:5173"
+      process.env.CLIENT_URL || "https://bucolic-lamington-52380b.netlify.app/"
     }/reset-password?token=${resetToken}`;
 
     // Setup transporter for email
@@ -950,7 +950,7 @@ const docMate = async (req, res) => {
             allFallbackDoctors.map(async (doctor) => {
               try {
                 const { data } = await axios.get(
-                  `http://localhost:4000/api/user/availble-day/${doctor._id}`
+                  `${process.env.BACKEND_URL}/api/user/availble-day/${doctor._id}`
                 );
                 return { doctor, availability: data?.availableTimes || {} };
               } catch {
@@ -1003,7 +1003,7 @@ const docMate = async (req, res) => {
         availableDoctors.map(async (doctor) => {
           try {
             const { data } = await axios.get(
-              `http://localhost:4000/api/user/availble-day/${doctor._id}`
+              `${process.env.BACKEND_URL}/api/user/availble-day/${doctor._id}`
             );
             return { doctor, availability: data?.availableTimes || {} };
           } catch {
@@ -1138,7 +1138,7 @@ const docMate = async (req, res) => {
                 allDocs.map(async (doctor) => {
                   try {
                     const { data } = await axios.get(
-                      `http://localhost:4000/api/user/availble-day/${doctor._id}`
+                      `${process.env.BACKEND_URL}/api/user/availble-day/${doctor._id}`
                     );
                     return { doctor, availability: data?.availableTimes || {} };
                   } catch {
@@ -1240,7 +1240,7 @@ async function fetchDoctorsWithRatings(doctorList) {
     doctorList.map(async (doctor) => {
       try {
         const { data } = await axios.get(
-          `http://localhost:4000/api/doctor/rating/${doctor._id}`
+          `${process.env.BACKEND_URL}/api/doctor/rating/${doctor._id}`
         );
         return {
           _id: doctor._id,

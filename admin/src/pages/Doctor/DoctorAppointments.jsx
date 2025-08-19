@@ -65,7 +65,7 @@ const DoctorAppointments = () => {
                         <div className="flex flex-wrap justify-between max-sm:gap-5 max-sm:text-base sm:grid grid-cols-[0.5fr_2fr_1fr_0.8fr_2fr_1fr_1fr_1.2fr] gap-1 items-center text-gray-500 py-3 px-6 border-b hover:bg-gray-50" key={index}>
                             <p className='max-sm:hidden m-auto'>{index + 1}</p>
                             <div className="flex items-center gap-2 m-auto">
-                                <img className='w-8 rounded-full' src={item.userData ? item.userData.image : assets.upload_area} alt="" />
+                                <img loading="lazy" className='w-8 rounded-full' src={item.userData ? item.userData.image : assets.upload_area} alt="" />
                                 <p>{item.userData ? item.userData.name : item.guestPatientId.name}</p>
                             </div>
                             <div className="m-auto">
@@ -88,8 +88,8 @@ const DoctorAppointments = () => {
                                         ? <p className='text-green-500 text-sm font-medium m-auto'>Completed</p>
                                         :
                                         <div className="flex m-auto">
-                                            <img onClick={() => { cancelAppointment(item._id) }} className='w-10 cursor-pointer' src={assets.cancel_icon} alt="" />
-                                            <img onClick={() => { completeAppointment(item._id) }} className='w-10 cursor-pointer' src={assets.tick_icon} alt="" />
+                                            <img loading="lazy" onClick={() => { cancelAppointment(item._id) }} className='w-10 cursor-pointer' src={assets.cancel_icon} alt="" />
+                                            <img loading="lazy" onClick={() => { completeAppointment(item._id) }} className='w-10 cursor-pointer' src={assets.tick_icon} alt="" />
                                         </div>
                             }
                         </div>

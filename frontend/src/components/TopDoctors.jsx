@@ -66,6 +66,7 @@ const TopDoctors = () => {
                                     className="w-full h-48 object-cover bg-[#F0FDF4]"
                                     src={item.image}
                                     alt=""
+                                    loading="lazy"
                                 />
                                 {/* Average rating badge */}
                                 {item.averageRating > 0 && (

@@ -15,7 +15,7 @@ const DoctorDashboard = () => {
 
     const StatCard = ({ label, count, icon, countClass = "text-gray-700" }) => (
         <div className="flex items-center gap-4 bg-white p-5 min-w-[180px] rounded-lg border-2 border-gray-200 shadow hover:shadow-lg cursor-pointer transition-transform hover:scale-105">
-            <img className="w-14" src={icon} alt={label} />
+            <img loading="lazy" className="w-14" src={icon} alt={label} />
             <div>
                 <p className={`text-2xl font-semibold ${countClass}`}>{count}</p>
                 <p className="text-gray-500">{label}</p>
@@ -66,7 +66,7 @@ const DoctorDashboard = () => {
             {/* Latest Bookings */}
             <section className="bg-white mt-12 rounded-lg shadow-md border border-gray-200 max-w-full">
                 <header className="flex items-center gap-3 px-6 py-4 rounded-t-lg border-b border-gray-300 bg-gray-50">
-                    <img src={assets.list_icon} alt="List Icon" className="w-6 h-6" />
+                    <img loading="lazy" src={assets.list_icon} alt="List Icon" className="w-6 h-6" />
                     <h2 className="font-semibold text-gray-800 text-xl">Latest Bookings</h2>
                 </header>
 
@@ -103,7 +103,7 @@ const DoctorDashboard = () => {
                                         aria-label="Cancel appointment"
                                         title="Cancel Appointment"
                                     >
-                                        <img src={assets.cancel_icon} alt="Cancel" className="w-4 h-4" />
+                                        <img loading="lazy" src={assets.cancel_icon} alt="Cancel" className="w-4 h-4" />
                                     </button>
 
                                     <button
@@ -112,7 +112,7 @@ const DoctorDashboard = () => {
                                         aria-label="Complete appointment"
                                         title="Complete Appointment"
                                     >
-                                        <img src={assets.tick_icon} alt="Complete" className="w-4 h-4" />
+                                        <img loading="lazy" src={assets.tick_icon} alt="Complete" className="w-4 h-4" />
                                     </button>
                                 </div>
 

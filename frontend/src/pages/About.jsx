@@ -10,10 +10,10 @@ const About = () => {
             </div>
 
             <div className="my-10 flex flex-col md:flex-row gap-12">
-                <img className='w-full md:max-w-[360px]' src={assets.about_image} alt="" />
+                <img loading="lazy" className='w-full md:max-w-[360px]' src={assets.about_image} alt="" />
                 <div className="flex flex-col justify-center gap-6 md:w-2/4 text-sm text-gray-600">
                     <p>At HealthHub, we are committed to connecting you with trusted healthcare professionals who prioritize your well-being. Our platform simplifies the process of finding the right doctor, ensuring a seamless experience for booking appointments.</p>
-                    <p>We understand the importance of healthcare, and our goal is to make quality medical services accessible to everyone. Whether you're seeking routine check-ups or specialized care, we are here to help you take the next step toward better health.</p>
+                    <p>We understand the importance of healthcare, and our goal is to make quality medical services accessible to everyone. Whether you need routine check-ups or specialized care, we are here to help you take the next step toward better health.</p>
                     <b className='text-gray-800'>Our Vision</b>
                     <p>Our vision is to create a healthier world by providing individuals with easy access to expert doctors and medical resources. Through our platform, we aim to empower people to make informed health decisions and enhance the quality of care they receive.</p>
                 </div>

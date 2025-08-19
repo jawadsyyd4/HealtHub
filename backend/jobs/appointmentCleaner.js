@@ -140,7 +140,9 @@ const sendCancellationEmail = async (appt) => {
               <p><strong>Time:</strong> ${appt.slotTime}</p>
               <p><strong>Doctor:</strong> ${appt.doctorData.name}</p>
             </div>
-            <p>You can book a new appointment anytime from the <a href="http://localhost:5173/doctors"></a>.</p>
+            <p>You can book a new appointment anytime from the <a href="${
+              process.env.CLIENT_URL
+            }/doctors"></a>.</p>
             <footer>
               <p>If you have any questions, please contact our support team.</p>
               <p>Thank you,<br/>The HealthHub Team</p>

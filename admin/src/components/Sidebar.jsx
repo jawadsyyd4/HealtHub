@@ -16,27 +16,23 @@ const Sidebar = () => {
                 aToken
                     ? <ul className='text-[#515151] mt-5'>
                         <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/admin-dashboard'}>
-                            <img src={assets.home_icon} />
+                            <img src={assets.home_icon} loading="lazy" />
                             <p className='hidden lg:block'>Dashboard</p>
                         </NavLink>
                         <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/all-appointments'}>
-                            <img src={assets.appointment_icon} />
+                            <img src={assets.appointment_icon} loading="lazy" />
                             <p className='hidden lg:block'>Appointments</p>
                         </NavLink>
-                        {/* <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/add-doctor'}>
-                            <img src={assets.add_icon} />
-                            <p className='hidden lg:block'>Add Doctor</p>
-                        </NavLink> */}
                         <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-list'}>
-                            <img src={assets.people_icon} />
+                            <img src={assets.people_icon} loading="lazy" />
                             <p className='hidden lg:block'>Manage Doctors</p>
                         </NavLink>
                         <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/add-speciality'}>
-                            <img className='w-8' src={assets.speciality_icon} />
+                            <img className='w-8' src={assets.speciality_icon} loading="lazy" />
                             <p className='hidden lg:block'>Manage Specialities</p>
                         </NavLink>
                         <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/guest-patients'}>
-                            <img src={assets.people_icon} />
+                            <img src={assets.people_icon} loading="lazy" />
                             <p className='hidden lg:block'>Guest Patients</p>
                         </NavLink>
                     </ul>
@@ -49,19 +45,19 @@ const Sidebar = () => {
                 dToken
                     ? <ul className='text-[#515151] mt-5'>
                         <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-dashboard'}>
-                            <img src={assets.home_icon} />
+                            <img src={assets.home_icon} loading="lazy" />
                             <p className='hidden lg:block'>Dashboard</p>
                         </NavLink>
                         <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-appointments'}>
-                            <img src={assets.appointment_icon} />
+                            <img src={assets.appointment_icon} loading="lazy" />
                             <p className='hidden lg:block'>Appointments</p>
                         </NavLink>
                         <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-profile'}>
-                            <img src={assets.people_icon} />
+                            <img src={assets.people_icon} loading="lazy" />
                             <p className='hidden lg:block'>Profile</p>
                         </NavLink>
                         <NavLink onClick={scrollTo(0, 0)} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 lg:px-9 lg:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-[#C0EB6A]' : ''}`} to={'/doctor-schedule'}>
-                            <img className='w-6' src={assets.dailyScheduleIcon} />
+                            <img className='w-6' src={assets.dailyScheduleIcon} loading="lazy" />
                             <p className='hidden lg:block'>Schedule</p>
                         </NavLink>
                     </ul>

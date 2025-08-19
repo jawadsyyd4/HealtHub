@@ -162,6 +162,7 @@ const AddSpeciality = () => {
                                                                     className="w-16 h-16 bg-gray-100 rounded-full cursor-pointer shadow-md"
                                                                     src={specialityImg ? URL.createObjectURL(specialityImg) : assets.upload_area}
                                                                     alt="Upload"
+                                                                    loading="lazy"
                                                                 />
                                                             </label>
                                                             <input
@@ -288,6 +289,7 @@ const AddSpeciality = () => {
                                                 className="w-24 h-24 rounded-full object-cover shadow-md border-2 border-gray-300 group-hover:opacity-80 transition-opacity"
                                                 src={image ? URL.createObjectURL(image) : specialityData.image}
                                                 alt="Speciality Preview"
+                                                loading="lazy"
                                             />
                                             {/* Upload Icon on Hover */}
                                             <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
@@ -295,6 +297,7 @@ const AddSpeciality = () => {
                                                     src={assets.upload_icon}
                                                     className="w-8 h-8"
                                                     alt="Upload Icon"
+                                                    loading="lazy"
                                                 />
                                             </div>
 
@@ -311,6 +314,7 @@ const AddSpeciality = () => {
                                             className="w-14 h-14 rounded-full object-cover shadow-md border border-gray-300 m-auto"
                                             src={item.image}
                                             alt={item.name}
+                                            loading="lazy"
                                         />
                                     )
                                 }
@@ -328,10 +332,10 @@ const AddSpeciality = () => {
                                 {
                                     isEdit && currentEditId === item._id
                                         ?
-                                        <img onClick={() => editHandler(item._id, specialityData.name, specialityData.description)} className="w-8 cursor-pointer" src={assets.save_icon} alt="" />
+                                        <img onClick={() => editHandler(item._id, specialityData.name, specialityData.description)} className="w-8 cursor-pointer" src={assets.save_icon} loading="lazy" alt="" />
                                         : <>
-                                            <img className='w-8 cursor-pointer' onClick={() => { setIsEdit(true); getSpecialityData(item._id) }} src={assets.edit_icon} alt="edit" />
-                                            <img className='w-8 cursor-pointer' onClick={() => deleteHandler(item._id)} src={assets.delete_icon} alt="delete" />
+                                            <img className='w-8 cursor-pointer' loading="lazy" onClick={() => { setIsEdit(true); getSpecialityData(item._id) }} src={assets.edit_icon} alt="edit" />
+                                            <img className='w-8 cursor-pointer' loading="lazy" onClick={() => deleteHandler(item._id)} src={assets.delete_icon} alt="delete" />
                                         </>
                                 }
                             </div>

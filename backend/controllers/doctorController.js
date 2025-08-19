@@ -19,7 +19,7 @@ const doctorsList = async (req, res) => {
       doctors.map(async (doctor) => {
         // Call the getDoctorAverageRating API
         const response = await axios.get(
-          `http://localhost:4000/api/doctor/rating/${doctor._id}`
+          `${process.env.BACKEND_URL}/api/doctor/rating/${doctor._id}`
         );
         const averageRating = response.data.averageRating;
 
@@ -550,7 +550,7 @@ const sendEmailNotification = async (
             <p>Dear ${patientName},</p>
             <p>We are pleased to confirm your appointment with Dr. ${appointmentDetails.doctorName} in the ${specialityName} specialty on ${appointmentDetails.slotDate} at ${appointmentDetails.slotTime}.</p>
             <p>Thank you for choosing us for your healthcare needs. If you need to make any changes, please don't hesitate to contact us.</p>
-            <p><a href="http://localhost:5173/doctors">View Doctors and Book an Appointment</a></p>
+            <p><a href="${process.env.CLIENT_URL}/doctors">View Doctors and Book an Appointment</a></p>
     
             <!-- Footer -->
             <footer>

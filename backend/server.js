@@ -30,7 +30,6 @@ app.use("/api/speciality", specialityRouter);
 
 cancelExpiredAppointments();
 reactivateUnavailableDoctors();
-// localhost:4000/api/admin
 
 app.get("/", (req, res) => {
   res.send("api working");
@@ -39,3 +38,10 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server started ${PORT}`);
 });
+
+app.use(
+  cors({
+    origin: [`${process.env.CLIENT_URL}`],
+    credentials: true,
+  })
+);

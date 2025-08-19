@@ -48,7 +48,7 @@ userRoute.post("/payment-stripepay", authUser, paymentStripepay);
 userRoute.get("/payment/success", handlePaymentSuccess);
 
 userRoute.get("/payment/cancel", (req, res) => {
-  res.redirect("http://localhost:5173/my-appointments");
+  res.redirect(`${process.env.CLIENT_URL}/my-appointments`);
 });
 
 userRoute.post("/rate-doctor", authUser, rateDoctor);

@@ -9,7 +9,7 @@ const Footer = () => {
             <div className='flex flex-col sm:grid grid-cols-1 sm:grid-cols-[3fr_1fr_1fr] gap-10 sm:gap-14 my-10 mt-40 text-sm sm:text-base'>
                 {/* LEFT */}
                 <div className="sm:mb-0 mb-10">
-                    <img className='mb-5 w-32 -mt-5' src={assets.svgLogo} alt="HealthHub Logo" />
+                    <img loading="lazy" className='mb-5 w-32 -mt-5' src={assets.svgLogo} alt="HealthHub Logo" />
                     <p className='w-full md:w-2/3 text-gray-600 leading-6 text-sm sm:text-base'>
                         At HealthHub, we provide trusted medical professionals, ensuring quality care for all your healthcare needs. Connect with specialists who are always ready to help.
                     </p>

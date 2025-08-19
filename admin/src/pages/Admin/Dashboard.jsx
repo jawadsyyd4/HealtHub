@@ -18,7 +18,7 @@ const Dashboard = () => {
 
     const StatCard = ({ icon, label, count }) => (
         <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:shadow cursor-pointer transition-transform transform hover:scale-[1.03] min-w-[140px]">
-            <img className="w-12" src={icon} alt={`${label} icon`} />
+            <img className="w-12" src={icon} alt={`${label} icon`} loading="lazy" />
             <div>
                 <p className="text-xl font-semibold text-gray-700">{count}</p>
                 <p className="text-gray-500 text-sm">{label}</p>
@@ -28,7 +28,7 @@ const Dashboard = () => {
 
     const DoctorCard = ({ doctor, label, value }) => (
         <div key={doctor._id} className="border p-3 rounded hover:shadow transition-shadow flex gap-3 items-center">
-            <img className="w-10 h-10 rounded-full object-cover" src={doctor.image} alt={doctor.name} />
+            <img className="w-10 h-10 rounded-full object-cover" src={doctor.image} loading="lazy" alt={doctor.name} />
             <div>
                 <p className="font-semibold text-sm text-gray-700">{doctor.name}</p>
                 <p className="text-xs text-gray-500">
@@ -50,13 +50,13 @@ const Dashboard = () => {
             {/* Latest Bookings */}
             <section className="bg-white rounded-lg shadow p-4">
                 <div className="flex items-center gap-2 border-b pb-2 mb-3">
-                    <img src={assets.list_icon} alt="List icon" className="w-5" />
+                    <img loading="lazy" src={assets.list_icon} alt="List icon" className="w-5" />
                     <h2 className="text-lg font-semibold text-[#C0EB6A]">Latest Bookings</h2>
                 </div>
                 <div className="space-y-2">
                     {dashData.latestAppointments.map((item) => (
                         <div key={item._id} className="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-100 transition-colors">
-                            <img className="w-10 h-10 rounded-full object-cover" src={item.doctorData.image} alt={item.doctorData.name} />
+                            <img loading="lazy" className="w-10 h-10 rounded-full object-cover" src={item.doctorData.image} alt={item.doctorData.name} />
                             <div className="flex-1 text-xs sm:text-sm">
                                 <p className="font-semibold text-gray-800">{item.doctorData.name}</p>
                                 <p className="text-gray-600">{slotDateFormat(item.slotDate)}</p>
@@ -72,6 +72,7 @@ const Dashboard = () => {
                                         className="w-10 cursor-pointer"
                                         src={assets.cancel_icon}
                                         alt="Cancel appointment"
+                                        loading="lazy"
                                     />
                                 )}
                             </div>

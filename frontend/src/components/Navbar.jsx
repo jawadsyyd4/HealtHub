@@ -17,7 +17,7 @@ const Navbar = () => {
     const [showMenu, setShowMenu] = useState(false);
     return (
         <div className='flex items-center justify-between text-sm py-4 mb-5 border-b border-b-gray-400'>
-            <img onClick={() => { navigate("/"); scrollTo(0, 0) }} className='w-36 cursor-pointer' src={assets.svgLogo} alt="" />
+            <img loading="lazy" onClick={() => { navigate("/"); scrollTo(0, 0) }} className='w-36 cursor-pointer' src={assets.svgLogo} alt="" />
             <ul className='hidden md:flex items-start gap-5 font-medium'>
                 <NavLink to='/'>
                     <li className='py-1'>HOME</li>
@@ -48,7 +48,7 @@ const Navbar = () => {
                             onClick={() => setIsOpen(!isOpen)} onMouseLeave={() => setIsOpen(false)}
                         >
                             <img className='w-8 rounded-full' src={userData.image} alt="User" loading='eager' />
-                            <img className='w-2.5' src={assets.dropdown_icon} alt="Dropdown icon" />
+                            <img loading="lazy" className='w-2.5' src={assets.dropdown_icon} alt="Dropdown icon" />
 
                             <div
                                 className={`
@@ -66,12 +66,12 @@ const Navbar = () => {
                         </div>
                         : <button onClick={() => navigate('/login')} className='bg-[#C0EB6A] text-white px-8 py-3 cursor-pointer rounded-full font-light block'>Create account</button>
                 }
-                <img onClick={() => setShowMenu(true)} className='w-6 md:hidden cursor-pointer' src={assets.menu_icon} alt="" />
+                <img loading="lazy" onClick={() => setShowMenu(true)} className='w-6 md:hidden cursor-pointer' src={assets.menu_icon} alt="" />
                 {/* MOBILE MENU */}
                 <div className={`${showMenu ? 'fixed w-full ' : 'h-0 w-0'} md:hidden right-0 top-0 bottom-0 z-20 overflow-hidden bg-white transition-all`}>
                     <div className='flex items-center justify-between px-5 py-6'>
-                        <img className='w-36' src={assets.svgLogo} alt="" />
-                        <img className='w-7 cursor-pointer' onClick={() => setShowMenu(false)} src={assets.cross_icon} alt="" />
+                        <img loading="lazy" className='w-36' src={assets.svgLogo} alt="" />
+                        <img loading="lazy" className='w-7 cursor-pointer' onClick={() => setShowMenu(false)} src={assets.cross_icon} alt="" />
                     </div>
                     <ul className='flex flex-col items-center gap-2 mt-5 px-5 text-lg font-medium'>
                         <NavLink to='/' onClick={() => setShowMenu(false)} ><p className='px-4 py-2 rounded inline-block'>HOME</p></NavLink>

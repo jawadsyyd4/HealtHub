@@ -1,13 +1,18 @@
 import mongoose from "mongoose";
 
 const connectDB = async () => {
-  // Set 'strictQuery' to false to suppress the deprecation warning
-  mongoose.set("strictQuery", false);
+  try {
+    mongoose.set("strictQuery", false);
 
-  mongoose.connection.on("connected", () => console.log("Database connected"));
-  await mongoose.connect(
-    `${process.env.MONGODB_URL || "mongodb://127.0.0.1:27017"}/HealthHub-gitHub`
-  );
+    mongoose.connection.on("connected", () =>
+      console.log("✅ Database connected to MongoDB Atlas")
+    );
+
+    await mongoose.connect(process.env.MONGODB_URL);
+  } catch (error) {
+    console.error("❌ MongoDB connection error:", error);
+    process.exit(1);
+  }
 };
 
 export default connectDB;

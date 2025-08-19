@@ -161,6 +161,7 @@ const DocMate = () => {
                                     <img
                                         src={doctor.iamge}
                                         alt={doctor.name}
+                                        loading="lazy"
                                         className="w-24 h-24 mx-auto mb-4 rounded-full object-cover border border-gray-300"
                                     />
                                     <div className="text-center">
