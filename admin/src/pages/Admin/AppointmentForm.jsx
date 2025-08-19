@@ -114,7 +114,7 @@ export default function AppointmentForm() {
 
             try {
                 const response = await axios.post(
-                    backendUrl + '/api/admin/doctor-day-time',
+                    `${backendUrl}/api/admin/doctor-day-time`,
                     { doctorId: formData.doctorId, day: formData.availableDay },
                     { headers: { aToken } }
                 );

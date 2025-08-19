@@ -13,7 +13,7 @@ const ForgotPassword = () => {
         e.preventDefault();
 
         try {
-            const { data } = await axios.post(backendUrl + '/api/user/forget-password', { email });
+            const { data } = await axios.post(`${backendUrl}/api/user/forget-password`, { email });
             if (data.success) {
                 toast.success(data.message);
             } else {

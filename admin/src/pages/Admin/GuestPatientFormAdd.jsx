@@ -21,7 +21,7 @@ const GuestPatientForm = () => {
 
     useEffect(() => {
         if (patientId) {
-            axios.get(backendUrl + `/api/admin/guest-patients/${patientId}`, { headers: { aToken } })
+            axios.get(`${backendUrl}/api/admin/guest-patients/${patientId}`, { headers: { aToken } })
                 .then((res) => setFormData(res.data))
                 .catch((err) => console.error("Failed to load patient", err));
         }
@@ -37,9 +37,9 @@ const GuestPatientForm = () => {
 
         try {
             if (patientId) {
-                await axios.post(backendUrl + `/api/admin/update-guest/${patientId}`, formData, { headers: { aToken } });
+                await axios.post(`${backendUrl}/api/admin/update-guest/${patientId}`, formData, { headers: { aToken } });
             } else {
-                await axios.post(backendUrl + `/api/admin/add-guest`, formData, { headers: { aToken } });
+                await axios.post(`${backendUrl}/api/admin/add-guest`, formData, { headers: { aToken } });
             }
 
             // Redirect to /guest-patients after success

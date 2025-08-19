@@ -20,7 +20,7 @@ const AppContextProvider = (props) => {
 
     const loadSpecialities = async () => {
         try {
-            const { data } = await axios.get(backendUrl + "/api/speciality/specialities")
+            const { data } = await axios.get(`${backendUrl}/api/speciality/specialities`)
             if (data.success) {
                 setSpecialities(data.specialities)
             }
@@ -36,7 +36,7 @@ const AppContextProvider = (props) => {
     const loadUserProfileData = async () => {
         try {
 
-            const { data } = await axios.get(backendUrl + "/api/user/get-profile", { headers: { token } })
+            const { data } = await axios.get(`${backendUrl}/api/user/get-profile`, { headers: { token } })
 
             if (data.success) {
                 if (data.userData.isVerified) {
@@ -55,7 +55,7 @@ const AppContextProvider = (props) => {
     const getDoctorsData = async () => {
         try {
 
-            const { data } = await axios.get(backendUrl + "/api/doctor/list")
+            const { data } = await axios.get(`${backendUrl}/api/doctor/list`)
             if (data.success) {
                 setDoctors(data.doctors)
             } else {

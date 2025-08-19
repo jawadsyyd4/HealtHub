@@ -53,7 +53,7 @@ const AddDoctor = () => {
                 line1: address1, line2: address2
             }))
 
-            const { data } = await axios.post(backendUrl + "/api/admin/add-doctor", formData, { headers: { aToken } })
+            const { data } = await axios.post(`${backendUrl}/api/admin/add-doctor`, formData, { headers: { aToken } })
 
             if (data.success) {
                 toast.success(data.message)
@@ -96,7 +96,7 @@ const AddDoctor = () => {
                 line1: address1, line2: address2
             }))
 
-            const { data } = await axios.post(backendUrl + `/api/admin/update-doctor/${docInfo._id}`, formData, { headers: { aToken } })
+            const { data } = await axios.post(`${backendUrl}/api/admin/update-doctor/${docInfo._id}`, formData, { headers: { aToken } })
 
             if (data.success) {
                 toast.success(data.message)

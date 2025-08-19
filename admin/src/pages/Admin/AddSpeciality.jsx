@@ -36,7 +36,7 @@ const AddSpeciality = () => {
             formData.append('name', name);
             formData.append('description', description); // Add description
 
-            const { data } = await axios.post(backendUrl + "/api/speciality/add-speciality", formData, { headers: { aToken } });
+            const { data } = await axios.post(`${backendUrl}/api/speciality/add-speciality`, formData, { headers: { aToken } });
 
             if (data.success) {
                 toast.success(data.message);
@@ -71,7 +71,7 @@ const AddSpeciality = () => {
             }
 
             const { data } = await axios.post(
-                backendUrl + '/api/speciality/update-speciality',
+                `${backendUrl}/api/speciality/update-speciality`,
                 formData,
                 {
                     headers: { aToken },
@@ -104,7 +104,7 @@ const AddSpeciality = () => {
 
     const getSpecialityData = async (id) => {
         try {
-            const { data } = await axios.get(backendUrl + "/api/speciality/get-speciality", {
+            const { data } = await axios.get(`${backendUrl}/api/speciality/get-speciality`, {
                 params: { id }  // Pass ID as query parameter
             });
 

@@ -36,7 +36,7 @@ const Login = () => {
 
         try {
             if (state === 'Sign Up') {
-                const { data } = await axios.post(backendUrl + '/api/user/register', {
+                const { data } = await axios.post(`${backendUrl}/api/user/register`, {
                     name,
                     password,
                     email,
@@ -50,7 +50,7 @@ const Login = () => {
                     toast.error(data.message);
                 }
             } else {
-                const { data } = await axios.post(backendUrl + '/api/user/login', {
+                const { data } = await axios.post(`${backendUrl}/api/user/login`, {
                     password,
                     email,
                 });

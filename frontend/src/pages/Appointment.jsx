@@ -151,7 +151,7 @@ const Appoitment = () => {
             const formattedTime = convert24To12Hour(slotTime);
 
             const { data } = await axios.post(
-                backendUrl + "/api/user/book-appointment",
+                `${backendUrl}/api/user/book-appointment`,
                 {
                     docId,
                     slotDate,
@@ -179,7 +179,7 @@ const Appoitment = () => {
 
     const getDoctorAVGRating = async (docId) => {
         try {
-            const { data } = await axios.get(backendUrl + `/api/doctor/rating/${docId}`)
+            const { data } = await axios.get(`${backendUrl}/api/doctor/rating/${docId}`)
             if (data.success) {
                 setavgRating(data.averageRating)
             }

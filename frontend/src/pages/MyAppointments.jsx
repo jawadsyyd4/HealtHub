@@ -27,7 +27,7 @@ const MyAppointments = () => {
     const [currentEditId, setCurrentEditId] = useState(false)
     const getUserAppointments = async () => {
         try {
-            const { data } = await axios.get(backendUrl + '/api/user/appointments', { headers: { token } })
+            const { data } = await axios.get(`${backendUrl}/api/user/appointments`, { headers: { token } })
 
             if (data.success) {
                 setAppointments(data.appointments.reverse())
@@ -44,7 +44,7 @@ const MyAppointments = () => {
     const cancelAppointment = async (appointmentId) => {
         try {
 
-            const { data } = await axios.post(backendUrl + '/api/user/cancel-appointment', { appointmentId }, { headers: { token } })
+            const { data } = await axios.post(`${backendUrl}/api/user/cancel-appointment`, { appointmentId }, { headers: { token } })
 
             if (data.success) {
                 toast.success(data.message)
@@ -63,7 +63,7 @@ const MyAppointments = () => {
 
     const handlePay = async (appointmentId) => {
         try {
-            const response = await axios.post(backendUrl + '/api/user/payment-stripepay', { appointmentId }, { headers: { token } }); // Simplified
+            const response = await axios.post(`${backendUrl}/api/user/payment-stripepay`, { appointmentId }, { headers: { token } }); // Simplified
 
             const { sessionId } = response.data;
 
@@ -83,7 +83,7 @@ const MyAppointments = () => {
         try {
             // Make sure value is the most recent
             const { data } = await axios.post(
-                backendUrl + '/api/user/rate-doctor', // Adjust API endpoint
+                `${backendUrl}/api/user/rate-doctor`, // Adjust API endpoint
                 {
                     doctorId: docId,
                     rating: value, // Use the updated state value here
@@ -185,7 +185,7 @@ const MyAppointments = () => {
                                     {!item.userRated && !showRate && (
                                         <button
                                             onClick={async () => {
-                                                const { data } = await axios.get(backendUrl + `/api/user/user-rate/${item.doctorId}`, { headers: { token } });
+                                                const { data } = await axios.get(`${backendUrl}/api/user/user-rate/${item.doctorId}`, { headers: { token } });
                                                 if (data.success && data.existingRating) {
                                                     toast.info("You have already rated this doctor.");
                                                     return;

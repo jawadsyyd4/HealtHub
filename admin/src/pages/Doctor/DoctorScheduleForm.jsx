@@ -12,7 +12,7 @@ const DoctorScheduleForm = () => {
 
     const getDoctorAvailability = async () => {
         try {
-            const { data } = await axios.get(backendUrl + "/api/doctor/schedule", {
+            const { data } = await axios.get(`${backendUrl}/api/doctor/schedule`, {
                 headers: { dToken },
             });
             if (data.success) {
@@ -70,11 +70,11 @@ const DoctorScheduleForm = () => {
         e.preventDefault();
         try {
             const endpoint = doctorAvailability
-                ? '/api/doctor/update-schedule'
-                : '/api/doctor/schedule';
+                ? `/api/doctor/update-schedule`
+                : `/api/doctor/schedule`;
 
             const { data } = await axios.post(
-                backendUrl + endpoint,
+                `${backendUrl}+${endpoint}`,
                 { availableDays, availableTimes },
                 { headers: { dToken } }
             );
