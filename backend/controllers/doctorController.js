@@ -6,7 +6,7 @@ import ratingModel from "../models/ratingModel.js";
 import DoctorSchedule from "../models/DoctorScheduleModel.js";
 import nodemailer from "nodemailer";
 import axios from "axios";
-import { getDoctorAverageRating } from "../services/ratingService.js";
+import { getDoctorAverageRatingService } from "../services/ratingService.js";
 
 const doctorsList = async (req, res) => {
   try {
@@ -17,7 +17,7 @@ const doctorsList = async (req, res) => {
 
     const doctorsWithRatings = await Promise.all(
       doctors.map(async (doctor) => {
-        const averageRating = await getDoctorAverageRating(doctor._id);
+        const averageRating = await getDoctorAverageRatingService(doctor._id);
 
         return {
           ...doctor.toObject(),

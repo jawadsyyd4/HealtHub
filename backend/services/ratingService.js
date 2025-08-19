@@ -1,7 +1,7 @@
 // services/ratingService.js
 import ratingModel from "../models/ratingModel.js";
 
-export const getDoctorAverageRating = async (doctorId) => {
+export const getDoctorAverageRatingService = async (doctorId) => {
   const ratings = await ratingModel.find({ doctorId });
 
   if (ratings.length === 0) return 0; // No ratings yet
