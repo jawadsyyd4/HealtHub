@@ -6,26 +6,22 @@ import ratingModel from "../models/ratingModel.js";
 import DoctorSchedule from "../models/DoctorScheduleModel.js";
 import nodemailer from "nodemailer";
 import axios from "axios";
+import { getDoctorAverageRating } from "../services/ratingService.js";
 
 const doctorsList = async (req, res) => {
   try {
     const doctors = await doctorModel
       .find({})
-      .select("-password -email") // Exclude sensitive fields
-      .populate("speciality"); // Populate the speciality reference
+      .select("-password -email")
+      .populate("speciality");
 
-    // Retrieve the average rating for each doctor using the getDoctorAverageRating API
     const doctorsWithRatings = await Promise.all(
       doctors.map(async (doctor) => {
-        // Call the getDoctorAverageRating API
-        const response = await axios.get(
-          `${process.env.BACKEND_URL}/api/doctor/rating/${doctor._id}`
-        );
-        const averageRating = response.data.averageRating;
+        const averageRating = await getDoctorAverageRating(doctor._id);
 
         return {
-          ...doctor.toObject(), // Convert doctor document to plain object
-          averageRating, // Add the average rating to the doctor object
+          ...doctor.toObject(),
+          averageRating,
         };
       })
     );
