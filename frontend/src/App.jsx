@@ -15,6 +15,7 @@ import Footer from './components/Footer'
 import ForgotPassword from './pages/ForgetPassword';  // Adjust path as needed
 import ResetPassword from './pages/ResetPassword'
 import DocMate from './pages/DocMate'
+import VerifyCodePage from './pages/VerifyCode'
 // import FixedButton from './components/FixedButton'
 // import { AppContext } from './context/AppContext'
 
@@ -22,7 +23,7 @@ const App = () => {
   const location = useLocation(); // Hook to get current location
   // const { token } = useContext(AppContext)
   // Corrected condition to check if we're on the login, forgot-password, or reset-password pages
-  const isLoginPage = location.pathname === '/login' || location.pathname === '/forgot-password' || location.pathname === '/reset-password';
+  const isLoginPage = location.pathname === '/login' || location.pathname === '/forgot-password' || location.pathname === '/reset-password' || location.pathname === '/verify-code';
 
   return (
     <div className='mx-4 sm:mx-[10%]'>
@@ -44,6 +45,8 @@ const App = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/doc-mate" element={<DocMate />} />
+        <Route path="/verify-code" element={<VerifyCodePage />} />
+
       </Routes>
       {/* {token && <FixedButton />} */}
       {/* Only render Footer if we're not on the login, forgot-password, or reset-password pages */}

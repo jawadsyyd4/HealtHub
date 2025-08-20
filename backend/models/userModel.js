@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
   gender: { type: String, default: "" },
   dob: { type: String, default: "" },
   phone: { type: String, default: "000000000" },
-  verificationCode: { type: String, required: true },
+  verificationCode: { type: String, default: null }, // remove required
   isVerified: { type: Boolean, default: false },
   resetPasswordToken: {
     type: String,

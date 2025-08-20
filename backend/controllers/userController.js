@@ -21,140 +21,99 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// REGISTER USER
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    // check if user exists
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
       return res.json({ success: false, message: "Email already exists" });
     }
 
-    // Generate a verification code.
-    const verificationCode = crypto.randomBytes(20).toString("hex");
+    // hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Hash the password.
-    const hashedPassword = await bcrypt.hash(password, 12);
+    // generate 6-digit verification code
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
 
-    const user = new userModel({
+    // create user
+    const newUser = new userModel({
       name,
       email,
       password: hashedPassword,
       verificationCode,
     });
+    await newUser.save();
 
-    await user.save();
+    // send verification email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
 
-    // Send verification email.
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
+    await transporter.sendMail({
+      from: `"Healthhub" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Please verify your email",
-      html: `
-        <html>
-          <head>
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                background-color: #f4f4f4;
-                color: #333;
-                padding: 20px;
-              }
-              h1 {
-                color: #C0EB6A;
-                font-size: 24px;
-                text-align: center;
-              }
-              p {
-                font-size: 16px;
-                color: #555;
-                text-align: center;
-              }
-              a {
-                color: #C0EB6A;
-                text-decoration: none;
-                font-weight: bold;
-              }
-              a:hover {
-                text-decoration: underline;
-              }
-              .logo {
-                display: block;
-                margin: 0 auto 20px;
-                width: 150px; /* Adjust logo size as needed */
-              }
-              footer {
-                text-align: center;
-                margin-top: 30px;
-                font-size: 14px;
-                color: #777;
-              }
-              footer a {
-                color: #C0EB6A;
-                text-decoration: none;
-              }
-              footer a:hover {
-                text-decoration: underline;
-              }
-            </style>
-          </head>
-          <body>
-            <!-- Main content -->
-            <h1>Verify your email</h1>
-            <p>Click <a href="${process.env.BACKEND_URL}/api/user/verify-email?code=${verificationCode}">here</a> to verify your email.</p>
-    
-            <!-- Footer -->
-            <footer>
-              <p>If you did not request this email, please ignore it.</p>
-              <p>For any questions, contact our <a href="mailto:healthhubt@gmail.com">support team</a>.</p>
-            </footer>
-          </body>
-        </html>
-      `,
-    };
+      subject: "Verify your account",
+      text: `Your verification code is: ${verificationCode}`,
+    });
 
-    // Send email asynchronously and return a response once done
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        console.log(err);
-        return res.json({ success: false, message: "Error sending email" });
-      }
-
-      // After email is sent, return the success response with the token
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-
-      return res.json({
-        success: true,
-        message:
-          "Registration successful! Please check your email to verify your account.",
-        token,
-      });
+    res.json({
+      success: true,
+      message:
+        "User registered. Please check your email for the verification code.",
+      email, // send email so frontend can save it
     });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-const verifyEmail = async (req, res) => {
+const verifyUser = async (req, res) => {
   try {
-    const { code } = req.query;
+    const { email, code } = req.body;
 
-    const user = await userModel.findOne({ verificationCode: code });
-
+    const user = await userModel.findOne({ email });
     if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    if (user.verificationCode !== code) {
       return res.json({
         success: false,
-        message: "Invalid or expired verification code.",
+        message: "Verification failed. Try again.",
       });
     }
 
+    // mark as verified
     user.isVerified = true;
+    user.verificationCode = null;
     await user.save();
-    res.redirect(`${process.env.CLIENT_URL}`);
+
+    // generate JWT token
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" } // or any duration you want
+    );
+
+    res.json({
+      success: true,
+      message: "Account verified successfully!",
+      token, // send token to frontend
+      email: user.email,
+    });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error(error);
+    res.json({ success: false, message: "Server error" });
   }
 };
 
@@ -1273,7 +1232,7 @@ export {
   cancelAppointment,
   paymentStripepay,
   handlePaymentSuccess,
-  verifyEmail,
+  verifyUser,
   rateDoctor,
   checkUserRating,
   getDocSlots,

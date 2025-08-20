@@ -41,11 +41,14 @@ const Login = () => {
                     password,
                     email,
                 });
+
                 if (data.success) {
                     toast.success(data.message);
-                    localStorage.setItem('token', data.token);
-                    setToken(data.token);
-                    setState('Log in');
+
+                    // Save the email to localStorage for verification page
+                    localStorage.setItem("pendingEmail", email);
+
+                    navigate("/verify-code")
                 } else {
                     toast.error(data.message);
                 }

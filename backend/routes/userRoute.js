@@ -10,7 +10,7 @@ import {
   cancelAppointment,
   paymentStripepay,
   handlePaymentSuccess,
-  verifyEmail,
+  verifyUser,
   rateDoctor,
   checkUserRating,
   getDocSlots,
@@ -24,7 +24,7 @@ import upload from "../middlewares/multer.js";
 const userRoute = express.Router();
 
 userRoute.post("/register", registerUser);
-userRoute.get("/verify-email", verifyEmail);
+userRoute.post("/verify-email", verifyUser);
 
 // Route to request a password reset (forget password)
 userRoute.post("/forget-password", forgetPassword);
