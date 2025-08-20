@@ -378,9 +378,9 @@ const bookAppointment = async (req, res) => {
 
 const confirmAppointment = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { appointmentId } = req.params; // match route param
 
-    const appointment = await appointmentModel.findById(id);
+    const appointment = await appointmentModel.findById(appointmentId);
     if (!appointment) {
       return res
         .status(404)
@@ -397,7 +397,6 @@ const confirmAppointment = async (req, res) => {
     appointment.isConfirmed = true;
     await appointment.save();
 
-    // ✅ Return JSON, do not redirect
     return res.json({ success: true, message: "Appointment confirmed" });
   } catch (error) {
     console.error(error);
