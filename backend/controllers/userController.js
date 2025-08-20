@@ -720,11 +720,36 @@ const forgetPassword = async (req, res) => {
       to: email,
       subject: "Password Reset Request",
       html: `
-        <h1>Password Reset Request</h1>
-        <p>You requested a password reset. Please click the link below:</p>
-        <p><a href="${resetLink}">Reset Your Password</a></p>
-        <p>This link expires in 1 hour.</p>
-      `,
+    <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+        
+        <!-- Header -->
+        <div style="background-color: #C0EB6A; padding: 20px; text-align: center;">
+          <h1 style="margin: 0; font-size: 22px; color: #333;">Password Reset Request</h1>
+        </div>
+        
+        <!-- Body -->
+        <div style="padding: 30px; color: #555; font-size: 15px; line-height: 1.6;">
+          <p>Hello,</p>
+          <p>You requested a password reset. Please click the button below to reset your password:</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetLink}" 
+               style="background-color: #C0EB6A; color: #333; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+              Reset Your Password
+            </a>
+          </div>
+          
+          <p>This link will expire in <strong>1 hour</strong>. If you did not request this, please ignore this email.</p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f1f1f1; text-align: center; padding: 15px; font-size: 13px; color: #777;">
+          <p>&copy; ${new Date().getFullYear()} Support Team. All rights reserved.</p>
+        </div>
+      </div>
+    </div>
+  `,
     });
   } catch (err) {
     console.error("Forget password error:", err);
