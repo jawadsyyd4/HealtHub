@@ -400,7 +400,11 @@ const confirmAppointment = async (req, res) => {
     await appointment.save();
 
     // Redirect to the "my appointments" page
-    res.redirect(`${process.env.CLIENT_URL}/my-appointments`);
+    // res.redirect(`${process.env.CLIENT_URL}/my-appointments`);
+    res.json({
+      success: true,
+      message: "Appointment confirmed",
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });
