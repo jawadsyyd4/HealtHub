@@ -16,6 +16,7 @@ import ForgotPassword from './pages/ForgetPassword';  // Adjust path as needed
 import ResetPassword from './pages/ResetPassword'
 import DocMate from './pages/DocMate'
 import VerifyCodePage from './pages/VerifyCode'
+import ConfirmAppointment from './pages/ConfirmAppointment'
 
 const App = () => {
   const location = useLocation(); // Hook to get current location
@@ -44,7 +45,7 @@ const App = () => {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/doc-mate" element={<DocMate />} />
         <Route path="/verify-code" element={<VerifyCodePage />} />
-
+        <Route path="/confirm-appointment/:appointmentId" element={<ConfirmAppointment />} />
       </Routes>
       {/* {token && <FixedButton />} */}
       {/* Only render Footer if we're not on the login, forgot-password, or reset-password pages */}

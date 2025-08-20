@@ -313,7 +313,7 @@ const bookAppointment = async (req, res) => {
     });
 
     // 8. Prepare confirmation email
-    const confirmationLink = `${process.env.BACKEND_URL}/api/user/confirm-appointment/${newAppointment._id}`;
+    const confirmationLink = `${process.env.CLIENT_URL}/confirm-appointment/${newAppointment._id}`;
     const deadline = newAppointment.confirmationDeadline;
     const formattedDate = deadline.toLocaleDateString("en-US", {
       year: "numeric",
