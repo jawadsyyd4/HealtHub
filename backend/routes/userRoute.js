@@ -55,7 +55,7 @@ userRoute.post("/rate-doctor", authUser, rateDoctor);
 userRoute.get("/user-rate/:doctorId", authUser, checkUserRating);
 userRoute.get("/availble-day/:doctorId", getDocSlots);
 
-userRoute.get("/confirm-appointment/:id", confirmAppointment);
+userRoute.get("/confirm-appointment/:appointmentId", confirmAppointment);
 
 userRoute.post("/chat", authUser, docMate);
 
