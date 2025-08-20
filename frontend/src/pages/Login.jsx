@@ -48,7 +48,7 @@ const Login = () => {
                     // Save the email to localStorage for verification page
                     localStorage.setItem("pendingEmail", email);
 
-                    window.location.href = "/";
+                    window.location.href = "/verify-code";
                 } else {
                     toast.error(data.message);
                 }

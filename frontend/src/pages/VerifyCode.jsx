@@ -1,8 +1,8 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-export default function VerifyCodePage() {
+const VerifyCodePage = () => {
     const [code, setCode] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -14,10 +14,10 @@ export default function VerifyCodePage() {
             const email = localStorage.getItem("pendingEmail");
             if (!email) throw new Error("No email found. Please register first.");
 
-            const { data } = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/verify-email`, {
-                email,
-                code,
-            });
+            const { data } = await axios.post(
+                `${import.meta.env.VITE_BACKEND_URL}/api/user/verify-email`,
+                { email, code }
+            );
 
             if (data.success) {
                 localStorage.setItem("token", data.token); // save JWT
@@ -65,4 +65,6 @@ export default function VerifyCodePage() {
             </div>
         </div>
     );
-}
+};
+
+export default VerifyCodePage;
