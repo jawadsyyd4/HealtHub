@@ -676,12 +676,11 @@ const getDocSlots = async (req, res) => {
   }
 };
 
-// Forget Password - Step 1: Request reset
+// STEP 1: Request reset
 const forgetPassword = async (req, res) => {
   const { email } = req.body;
 
   try {
-    // Find the user by email
     const user = await userModel.findOne({ email });
     if (!user) {
       return res
@@ -689,103 +688,46 @@ const forgetPassword = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // Generate a password reset token
+    // Generate token
     const resetToken = crypto.randomBytes(32).toString("hex");
 
+    // Save token & expiry (skip validation for speed)
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpire = Date.now() + 3600000; // 1 hour expiration time
-    await user.save();
+    user.resetPasswordExpire = Date.now() + 60 * 60 * 1000; // 1h
+    await user.save({ validateBeforeSave: false });
 
-    // Use an environment variable for the base URL to allow flexibility between dev and prod
     const resetLink = `${
-      process.env.CLIENT_URL || "https://bucolic-lamington-52380b.netlify.app/"
+      process.env.CLIENT_URL || "http://localhost:5173"
     }/reset-password?token=${resetToken}`;
 
-    // Setup transporter for email
+    // Respond quickly before sending email
+    res.status(200).json({
+      success: true,
+      message: "Password reset link sent to your email",
+    });
+
+    // Send email in background
     const transporter = nodemailer.createTransport({
-      service: "Gmail", // Use a proper email service (or a dedicated email service like SendGrid in production)
+      service: "Gmail",
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
       },
     });
 
-    // Send the reset link to the user's email
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"Support Team" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "Password Reset Request",
       html: `
-        <html>
-          <head>
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                background-color: #f4f4f4;
-                color: #333;
-                padding: 20px;
-              }
-              h1 {
-                color: #C0EB6A;
-                font-size: 24px;
-                text-align: center;
-              }
-              p {
-                font-size: 16px;
-                color: #555;
-                text-align: center;
-              }
-              a {
-                color: #C0EB6A;
-                text-decoration: none;
-                font-weight: bold;
-              }
-              a:hover {
-                text-decoration: underline;
-              }
-              .logo {
-                display: block;
-                margin: 0 auto 20px;
-                width: 150px; /* Adjust logo size as needed */
-              }
-              footer {
-                text-align: center;
-                margin-top: 30px;
-                font-size: 14px;
-                color: #777;
-              }
-              footer a {
-                color: #C0EB6A;
-                text-decoration: none;
-              }
-              footer a:hover {
-                text-decoration: underline;
-              }
-            </style>
-          </head>
-          <body>
-            <!-- Main content -->
-            <h1>Password Reset Request</h1>
-            <p>You requested a password reset. Please click the link below to reset your password:</p>
-            <p><a href="${resetLink}">Reset Your Password</a></p>
-    
-            <!-- Footer -->
-            <footer>
-              <p>This link will expire in 1 hour.</p>
-              <p>If you did not request this change, please ignore this email.</p>
-              <p>For any questions, contact our <a href="mailto:support@yourcompany.com">support team</a>.</p>
-            </footer>
-          </body>
-        </html>
+        <h1>Password Reset Request</h1>
+        <p>You requested a password reset. Please click the link below:</p>
+        <p><a href="${resetLink}">Reset Your Password</a></p>
+        <p>This link expires in 1 hour.</p>
       `,
     });
-
-    res.status(200).json({
-      success: true,
-      message: "Password reset link sent to your email",
-    });
   } catch (err) {
-    console.error(err); // Log the error for debugging purposes
+    console.error("Forget password error:", err);
     res.status(500).json({
       success: false,
       message: "Error processing request",
@@ -794,24 +736,23 @@ const forgetPassword = async (req, res) => {
   }
 };
 
-// Reset Password - Step 2: Reset password using the token
+// STEP 2: Reset password
 const resetPassword = async (req, res) => {
   const { token, password } = req.body;
-  console.log(token);
-  console.log(password);
+
   try {
     const user = await userModel.findOne({
       resetPasswordToken: token,
-      resetPasswordExpire: { $gt: Date.now() }, // Check if the token is expired
+      resetPasswordExpire: { $gt: Date.now() }, // still valid
     });
 
     if (!user) {
       return res
         .status(400)
-        .json({ message: "Invalid or expired reset token" });
+        .json({ success: false, message: "Invalid or expired reset token" });
     }
 
-    // Hash the new password and save it
+    // Hash and save new password
     user.password = await bcrypt.hash(password, 10);
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
@@ -822,9 +763,12 @@ const resetPassword = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Password successfully reset" });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error resetting password", error: err.message });
+    console.error("Reset password error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Error resetting password",
+      error: err.message,
+    });
   }
 };
 
