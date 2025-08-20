@@ -16,9 +16,7 @@ const ConfirmAppointment = () => {
 
                 if (res.data.success) {
                     setStatus("success");
-                    setTimeout(() => {
-                        navigate("/my-appointments");
-                    }, 2000);
+                    setTimeout(() => navigate("/my-appointments"), 2000); // frontend handles redirect
                 } else {
                     setStatus("failed");
                 }

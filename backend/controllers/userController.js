@@ -378,35 +378,29 @@ const bookAppointment = async (req, res) => {
 
 const confirmAppointment = async (req, res) => {
   try {
-    const { appointmentId } = req.params;
+    const { id } = req.params;
 
-    // Find the appointment
-    const appointment = await appointmentModel.findById(appointmentId);
-
+    const appointment = await appointmentModel.findById(id);
     if (!appointment) {
-      return res.json({ success: false, message: "Appointment not found" });
-    }
-
-    // Check if the confirmation deadline has passed
-    const now = new Date();
-    if (now > appointment.confirmationDeadline) {
       return res
-        .status(400)
-        .json({ success: false, message: "Confirmation deadline has passed" });
+        .status(404)
+        .json({ success: false, message: "Appointment not found" });
     }
 
-    // Confirm the appointment
-    appointment.confirmed = true;
+    if (appointment.isConfirmed) {
+      return res.json({
+        success: true,
+        message: "Appointment already confirmed",
+      });
+    }
+
+    appointment.isConfirmed = true;
     await appointment.save();
 
-    // Redirect to the "my appointments" page
-    // res.redirect(`${process.env.CLIENT_URL}/my-appointments`);
-    res.json({
-      success: true,
-      message: "Appointment confirmed",
-    });
+    // ✅ Return JSON, do not redirect
+    return res.json({ success: true, message: "Appointment confirmed" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
