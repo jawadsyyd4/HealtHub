@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom"; // <- import useNavigate
 
 const VerifyCodePage = () => {
     const [code, setCode] = useState("");
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate(); // <- initialize navigate
 
     const handleVerify = async (e) => {
         e.preventDefault();
@@ -23,7 +25,7 @@ const VerifyCodePage = () => {
                 localStorage.setItem("token", data.token); // save JWT
                 localStorage.removeItem("pendingEmail");
                 toast.success(data.message);
-                window.location.href = "/"; // redirect to homepage
+                navigate("/"); // <- use navigate instead of window.location.href
             } else {
                 toast.error(data.message);
             }

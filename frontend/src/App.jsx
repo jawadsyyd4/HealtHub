@@ -16,8 +16,6 @@ import ForgotPassword from './pages/ForgetPassword';  // Adjust path as needed
 import ResetPassword from './pages/ResetPassword'
 import DocMate from './pages/DocMate'
 import VerifyCodePage from './pages/VerifyCode'
-// import FixedButton from './components/FixedButton'
-// import { AppContext } from './context/AppContext'
 
 const App = () => {
   const location = useLocation(); // Hook to get current location
