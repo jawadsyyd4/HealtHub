@@ -62,7 +62,20 @@ const registerUser = async (req, res) => {
       from: `"Healthhub" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "Verify your account",
-      text: `Your verification code is: ${verificationCode}`,
+      html: `
+    <div style="font-family: Arial, sans-serif; background: #fff; padding: 20px; border-radius: 8px; color: #333;">
+      <h2 style="color: #C0EB6A; text-align: center;">Verify Your Account</h2>
+      <p>Hello ${name},</p>
+      <p>Thank you for registering! Please use the following <strong>6-digit verification code</strong> to verify your email address:</p>
+      <p style="font-size: 24px; font-weight: bold; color: #C0EB6A; text-align: center; letter-spacing: 4px;">
+        ${verificationCode}
+      </p>
+      <p style="margin-top: 20px;">If you didn’t register for this account, please ignore this email.</p>
+      <p style="margin-top: 10px; font-size: 12px; color: #999; text-align: center;">
+        Healthhub &copy; ${new Date().getFullYear()}
+      </p>
+    </div>
+  `,
     });
 
     res.json({
