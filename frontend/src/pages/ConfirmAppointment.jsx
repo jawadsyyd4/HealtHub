@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from 'react-toastify';
 
 const ConfirmAppointment = () => {
     const { appointmentId } = useParams();
@@ -19,9 +20,11 @@ const ConfirmAppointment = () => {
                     setTimeout(() => navigate("/my-appointments"), 2000); // frontend handles redirect
                 } else {
                     setStatus("failed");
+                    toast.error(res.data.message)
                 }
             } catch (error) {
                 console.error(error);
+                toast.error(error.response?.data?.message || "Something went wrong");
                 setStatus("error");
             }
         };

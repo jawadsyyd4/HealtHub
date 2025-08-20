@@ -379,7 +379,7 @@ const bookAppointment = async (req, res) => {
 const confirmAppointment = async (req, res) => {
   try {
     const { appointmentId } = req.params; // match route param
-
+    console.log("AppointmentId received:", appointmentId);
     const appointment = await appointmentModel.findById(appointmentId);
     if (!appointment) {
       return res
