@@ -74,7 +74,7 @@ const DoctorScheduleForm = () => {
                 : `/api/doctor/schedule`;
 
             const { data } = await axios.post(
-                `${backendUrl}+${endpoint}`,
+                `${backendUrl}${endpoint}`,
                 { availableDays, availableTimes },
                 { headers: { dToken } }
             );

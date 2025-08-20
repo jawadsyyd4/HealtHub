@@ -5,8 +5,25 @@ import appointmentModel from "../models/appointmentModel.js";
 import ratingModel from "../models/ratingModel.js";
 import DoctorSchedule from "../models/DoctorScheduleModel.js";
 import nodemailer from "nodemailer";
-import axios from "axios";
-import { getDoctorAverageRatingService } from "../services/ratingService.js";
+
+export const getDoctorsAverageRatingsService = async () => {
+  const ratings = await ratingModel.aggregate([
+    {
+      $group: {
+        _id: "$doctorId",
+        averageRating: { $avg: "$rating" },
+      },
+    },
+  ]);
+
+  // Convert aggregation result into a map for fast lookup
+  const ratingMap = {};
+  ratings.forEach((r) => {
+    ratingMap[r._id.toString()] = r.averageRating;
+  });
+
+  return ratingMap;
+};
 
 const doctorsList = async (req, res) => {
   try {
@@ -15,16 +32,14 @@ const doctorsList = async (req, res) => {
       .select("-password -email")
       .populate("speciality");
 
-    const doctorsWithRatings = await Promise.all(
-      doctors.map(async (doctor) => {
-        const averageRating = await getDoctorAverageRatingService(doctor._id);
+    // Get all average ratings in one query
+    const ratingMap = await getDoctorsAverageRatingsService();
 
-        return {
-          ...doctor.toObject(),
-          averageRating,
-        };
-      })
-    );
+    // Attach ratings to doctors
+    const doctorsWithRatings = doctors.map((doctor) => ({
+      ...doctor.toObject(),
+      averageRating: ratingMap[doctor._id.toString()] || 0,
+    }));
 
     res.json({
       success: true,

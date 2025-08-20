@@ -10,7 +10,6 @@ import DoctorSchedule from "../models/DoctorScheduleModel.js";
 import ratingModel from "../models/ratingModel.js";
 import specialityModel from "../models/specialityModel.js";
 import guestPatientModel from "../models/guestPatientModel.js";
-import axios from "axios";
 
 const addDoctor = async (req, res) => {
   try {
